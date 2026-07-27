@@ -1,0 +1,170 @@
+/* Global Theme & Reset */
+:root {
+  --bg-primary: #090A0C;
+  --bg-secondary: #111318;
+  --bg-card: #161920;
+  --bg-glass: rgba(17, 19, 24, 0.75);
+  
+  --accent-gold: #D4AF37;
+  --accent-gold-light: #F3E5AB;
+  --accent-gold-gradient: linear-gradient(135deg, #FFDF00 0%, #D4AF37 50%, #AA7C11 100%);
+  
+  --text-primary: #F0F2F5;
+  --text-secondary: #9DA6B4;
+  --text-muted: #5F6775;
+  --text-gold: #E5C158;
+
+  --border-subtle: rgba(255, 255, 255, 0.07);
+  --border-gold: rgba(212, 175, 55, 0.25);
+  --border-gold-strong: rgba(212, 175, 55, 0.6);
+
+  --status-success: #2EBD85;
+  --status-danger: #F6465D;
+
+  --shadow-card: 0 10px 30px -5px rgba(0, 0, 0, 0.5);
+  --shadow-gold: 0 0 20px rgba(212, 175, 55, 0.25);
+  --transition-smooth: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+
+  --font-heading: 'Outfit', sans-serif;
+  --font-body: 'Inter', sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* HIDE NATIVE BROWSER NUMBER INPUT SPINNERS (Use custom React control buttons) */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none !important;
+  margin: 0 !important;
+}
+input[type="number"] {
+  -moz-appearance: textfield !important;
+}
+
+/* UNIVERSAL SMOOTH TAB & MODAL FADE-SLIDE ANIMATION */
+@keyframes fadeInUpSmooth {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes modalBackdropFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalContentPop {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(14px);
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(0.85); }
+}
+
+.page-transition {
+  animation: fadeInUpSmooth 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.modal-overlay {
+  animation: modalBackdropFade 0.3s ease-out forwards;
+}
+
+.modal-content, .glass-panel-modal {
+  animation: modalContentPop 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* UNIVERSAL CUSTOM GOLD & DARK OBSIDIAN SCROLLBAR STYLING */
+*::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #090A0C !important;
+  border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(212, 175, 55, 0.4) !important;
+  border-radius: 4px;
+  border: 1px solid rgba(212, 175, 55, 0.3) !important;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-gold) !important;
+  box-shadow: 0 0 8px var(--accent-gold) !important;
+}
+
+/* Glassmorphism Panel Class */
+.glass-panel {
+  background: var(--bg-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
+  transition: var(--transition-smooth);
+}
+
+/* Gold Gradient Button */
+.gold-button {
+  background: var(--accent-gold-gradient);
+  color: #090A0C;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+  font-family: var(--font-heading);
+  letter-spacing: 0.5px;
+}
+
+.gold-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.5);
+  filter: brightness(1.1);
+}
+
+.gold-button:active {
+  transform: translateY(0);
+}
+
+/* Metallic Text Effect */
+.gold-gradient-text {
+  background: var(--accent-gold-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
