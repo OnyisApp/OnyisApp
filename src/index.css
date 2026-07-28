@@ -315,8 +315,11 @@ html, body {
   display: none;
 }
 
+.navbar-controls-capsule::-webkit-scrollbar {
+  display: none !important;
+}
+
 @media (max-width: 768px) {
-  /* 1. RED CIRCLE FIX: Navbar single logo on left + Touch horizontal scrollable controls on right */
   .navbar-main-header {
     padding: 8px 12px !important;
     flex-wrap: nowrap !important;
@@ -324,13 +327,10 @@ html, body {
     gap: 8px !important;
   }
 
-  .navbar-main-header > div:nth-child(2) {
-    overflow-x: auto !important;
-    white-space: nowrap !important;
-    -webkit-overflow-scrolling: touch !important;
+  .navbar-controls-capsule {
     max-width: calc(100vw - 120px) !important;
-    padding-bottom: 2px !important;
-    flex-wrap: nowrap !important;
+    padding: 3px 6px !important;
+    gap: 5px !important;
   }
 
   .navbar-main-header > div:nth-child(2)::-webkit-scrollbar {
