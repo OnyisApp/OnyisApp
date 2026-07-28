@@ -130,18 +130,24 @@ export default function App() {
         netProfitETH: symbol === 'ETH' ? prev.netProfitETH + profit : prev.netProfitETH
       }));
 
-      // Balanced XP formula: 1 USDG = 1 XP, 0.01 ETH = 25 XP
-      const earnedXp = Math.max(1, Math.round(wagerVal * (symbol === 'USDG' ? 1 : 2500)));
+      // High-Prestige XP formula: 1 XP = $1 Wagered (1 USDG = 1 XP, 0.01 ETH = 30 XP)
+      const earnedXp = Math.max(1, Math.round(wagerVal * (symbol === 'USDG' ? 1 : 3000)));
+
+      const LEVEL_XP_THRESHOLDS = [250, 500, 1000, 2000, 5000, 7000, 8500, 10000, 20000, 50000];
+      const getRequiredXpForLevel = (lvl) => {
+        if (lvl < LEVEL_XP_THRESHOLDS.length) return LEVEL_XP_THRESHOLDS[lvl];
+        return Math.round(50000 * Math.pow(1.5, lvl - 9));
+      };
 
       setXpState(prev => {
         let currentXp = prev.xp + earnedXp;
         let currentLevel = prev.level;
-        let reqXp = prev.nextLevelXp;
+        let reqXp = getRequiredXpForLevel(currentLevel);
 
         while (currentXp >= reqXp) {
           currentXp -= reqXp;
           currentLevel += 1;
-          reqXp = Math.round(250 * Math.pow(1.45, currentLevel));
+          reqXp = getRequiredXpForLevel(currentLevel);
         }
 
         return {

@@ -118,6 +118,34 @@ export default function XPModal({ isOpen, onClose, level, xp, nextLevelXp }) {
           </div>
         </div>
 
+        {/* Level Thresholds Table */}
+        <div style={{
+          padding: '12px 16px',
+          background: 'var(--bg-secondary)',
+          border: '1px solid var(--border-subtle)',
+          borderRadius: '10px',
+          marginBottom: '16px',
+          maxHeight: '140px',
+          overflowY: 'auto',
+          fontSize: '0.78rem'
+        }}>
+          <div style={{ color: 'var(--text-gold)', fontWeight: 700, marginBottom: '8px', letterSpacing: '0.5px' }}>
+            VIP LEVEL THRESHOLDS (1 XP = $1):
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', color: 'var(--text-muted)' }}>
+            <div>L0 → L1: <strong style={{ color: 'var(--text-primary)' }}>250 XP</strong></div>
+            <div>L1 → L2: <strong style={{ color: 'var(--text-primary)' }}>500 XP</strong></div>
+            <div>L2 → L3: <strong style={{ color: 'var(--text-primary)' }}>1,000 XP</strong></div>
+            <div>L3 → L4: <strong style={{ color: 'var(--text-primary)' }}>2,000 XP</strong></div>
+            <div>L4 → L5: <strong style={{ color: 'var(--text-primary)' }}>5,000 XP</strong></div>
+            <div>L5 → L6: <strong style={{ color: 'var(--text-primary)' }}>7,000 XP</strong></div>
+            <div>L6 → L7: <strong style={{ color: 'var(--text-primary)' }}>8,500 XP</strong></div>
+            <div>L7 → L8: <strong style={{ color: 'var(--text-primary)' }}>10,000 XP</strong></div>
+            <div>L8 → L9: <strong style={{ color: 'var(--text-primary)' }}>20,000 XP</strong></div>
+            <div>L9 → L10: <strong style={{ color: 'var(--text-primary)' }}>50,000 XP</strong></div>
+          </div>
+        </div>
+
         {/* Rules Box */}
         <div style={{
           padding: '14px',
@@ -129,7 +157,7 @@ export default function XPModal({ isOpen, onClose, level, xp, nextLevelXp }) {
           color: 'var(--text-secondary)',
           lineHeight: 1.5
         }}>
-          Earn <strong style={{ color: 'var(--status-success)' }}>25 XP</strong> per <strong style={{ color: 'var(--text-gold)' }}>0.01 ETH</strong> bet · <strong style={{ color: 'var(--status-success)' }}>1 XP</strong> per <strong style={{ color: 'var(--text-gold)' }}>1 USDG</strong> bet on FLIPO, RUGO & BOLO.
+          Earn <strong style={{ color: 'var(--status-success)' }}>1 XP</strong> per <strong style={{ color: 'var(--text-gold)' }}>$1 Wagered</strong> (<strong style={{ color: 'var(--status-success)' }}>1 XP</strong> per 1 USDG · <strong style={{ color: 'var(--status-success)' }}>30 XP</strong> per 0.01 ETH) across FLIPO, RUGO & BOLO.
         </div>
       </div>
     </div>
