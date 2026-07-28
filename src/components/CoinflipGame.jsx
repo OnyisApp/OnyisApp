@@ -77,8 +77,8 @@ export default function CoinflipGame({ balance, setBalance, isConnected, addLive
 
   return (
     <>
-      <div style={{ maxWidth: '1200px', margin: '32px auto', padding: '0 24px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '28px' }}>
+      <div className="game-container-padding" style={{ maxWidth: '1200px', margin: '32px auto', padding: '0 24px' }}>
+        <div className="game-layout-grid" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '28px' }}>
           
           {/* Main Coinflip Arena */}
           <div className="glass-panel" style={{ padding: '36px', textAlign: 'center', position: 'relative' }}>

@@ -354,7 +354,7 @@ export default function ChartGame({ balance, setBalance, isConnected, addLiveAct
 
   return (
     <>
-      <div style={{ maxWidth: '1200px', margin: '32px auto', padding: '0 24px', display: 'grid', gridTemplateColumns: '2.2fr 1fr', gap: '28px', minWidth: 0 }}>
+      <div className="game-container-padding game-layout-grid" style={{ maxWidth: '1200px', margin: '32px auto', padding: '0 24px', display: 'grid', gridTemplateColumns: '2.2fr 1fr', gap: '28px', minWidth: 0 }}>
         
         {/* Main Chart Battle Canvas Arena */}
         <div className="glass-panel" style={{ padding: '28px', position: 'relative', minWidth: 0, overflow: 'hidden' }}>

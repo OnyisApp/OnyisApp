@@ -556,7 +556,7 @@ export default function PlinkoGame({ balance, setBalance, isConnected, addLiveAc
 
   return (
     <>
-      <div style={{ maxWidth: '1240px', margin: '24px auto', padding: '0 24px', display: 'grid', gridTemplateColumns: '320px 1fr 300px', gap: '20px', alignItems: 'start' }}>
+      <div className="game-container-padding game-layout-grid" style={{ maxWidth: '1240px', margin: '24px auto', padding: '0 24px', display: 'grid', gridTemplateColumns: '320px 1fr 300px', gap: '20px', alignItems: 'start' }}>
         
         {/* Left Column: Game Sidebar Controls */}
         <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '18px', height: '540px', boxSizing: 'border-box' }}>
