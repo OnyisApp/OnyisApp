@@ -26,15 +26,18 @@ export default function ActivityTicker({ activities }) {
 
         {/* Horizontal Ticker Strip */}
         <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(6, 1fr)',
+          display: 'flex',
           gap: '12px',
-          overflowX: 'auto'
+          overflowX: 'auto',
+          paddingBottom: '4px',
+          WebkitOverflowScrolling: 'touch'
         }}>
           {activities.map((item) => (
             <div
               key={item.id}
               style={{
+                minWidth: '160px',
+                flex: '0 0 auto',
                 padding: '10px 12px',
                 background: 'var(--bg-secondary)',
                 border: '1px solid ' + (item.status === 'WIN' ? 'rgba(46, 189, 133, 0.25)' : 'rgba(246, 70, 93, 0.25)'),

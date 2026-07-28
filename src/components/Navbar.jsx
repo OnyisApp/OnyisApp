@@ -257,7 +257,7 @@ export default function Navbar({ balance, setBalance, selectedCurrency = 'ETH', 
 
   return (
     <>
-      <header style={{
+      <header className="navbar-main-header" style={{
         padding: '8px 20px',
         borderBottom: '1px solid var(--border-subtle)',
         display: 'flex',
@@ -312,7 +312,7 @@ export default function Navbar({ balance, setBalance, selectedCurrency = 'ETH', 
         </div>
 
         {/* Navigation & Action Bar: All Controls Grouped into One Unified Bar */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div className="navbar-controls" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           
           {/* Session P&L Tracker Pill (Compact Single-Line) */}
           <div style={{
@@ -333,7 +333,7 @@ export default function Navbar({ balance, setBalance, selectedCurrency = 'ETH', 
           </div>
 
           {/* Info & Docs Grouped Segmented Control */}
-          <div style={{
+          <div className="hide-on-mobile" style={{
             display: 'flex',
             alignItems: 'center',
             background: 'rgba(212, 175, 55, 0.06)',
@@ -411,7 +411,7 @@ export default function Navbar({ balance, setBalance, selectedCurrency = 'ETH', 
           </div>
 
           {/* Network Badge (Fixed to Robinhood Chain) */}
-          <div style={{ position: 'relative' }}>
+          <div className="hide-on-mobile" style={{ position: 'relative' }}>
             <button
               onClick={() => setShowNetworkDropdown(!showNetworkDropdown)}
               style={{

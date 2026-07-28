@@ -34,7 +34,7 @@ export default function GameSelector({ activeTab, setActiveTab }) {
   ];
 
   return (
-    <div style={{
+    <div className="game-selector-grid" style={{
       maxWidth: '1200px',
       margin: '28px auto 0',
       padding: '0 24px',
@@ -51,7 +51,7 @@ export default function GameSelector({ activeTab, setActiveTab }) {
             onClick={() => setActiveTab(g.id)}
             className="glass-panel"
             style={{
-              padding: '20px 24px',
+              padding: '16px 18px',
               cursor: 'pointer',
               borderColor: isActive ? 'var(--border-gold-strong)' : 'var(--border-subtle)',
               background: isActive 
