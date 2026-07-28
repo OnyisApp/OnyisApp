@@ -243,7 +243,10 @@ export default function App() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-primary)', position: 'relative' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'transparent', position: 'relative' }}>
+      {/* Floating Animated Web3 Ambient Glow Orbs */}
+      <div className="bg-glow-orb-gold" />
+      <div className="bg-glow-orb-emerald" />
       {/* Sleek Top Navbar */}
       <Navbar
         balance={balance}

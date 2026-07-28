@@ -35,12 +35,79 @@
   box-sizing: border-box;
 }
 
+/* Animated Ambient Web3 Dark Luxury Background */
 body {
-  background-color: var(--bg-primary);
+  background-color: #08090C;
+  background-image: 
+    radial-gradient(circle at 15% 15%, rgba(212, 175, 55, 0.08) 0%, transparent 45%),
+    radial-gradient(circle at 85% 65%, rgba(46, 189, 133, 0.06) 0%, transparent 40%),
+    radial-gradient(circle at 50% 30%, rgba(26, 31, 44, 0.55) 0%, rgba(8, 9, 12, 1) 85%);
+  background-attachment: fixed;
   color: var(--text-primary);
   font-family: var(--font-body);
   overflow-x: hidden;
+  position: relative;
+  min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Cybernetic Grid & Glow Overlay */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 40%, black 30%, transparent 90%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 80% at 50% 40%, black 30%, transparent 90%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Floating Ambient Light Orbs */
+.bg-glow-orb-gold {
+  position: fixed;
+  top: 8%;
+  left: 3%;
+  width: 550px;
+  height: 550px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.12) 0%, transparent 70%);
+  filter: blur(85px);
+  pointer-events: none;
+  z-index: 0;
+  animation: floatOrb 18s ease-in-out infinite alternate;
+}
+
+.bg-glow-orb-emerald {
+  position: fixed;
+  bottom: 8%;
+  right: 3%;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(46, 189, 133, 0.09) 0%, transparent 70%);
+  filter: blur(95px);
+  pointer-events: none;
+  z-index: 0;
+  animation: floatOrb 22s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes floatOrb {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(45px, 35px) scale(1.15);
+  }
+  100% {
+    transform: translate(-35px, 55px) scale(0.95);
+  }
 }
 
 /* HIDE NATIVE BROWSER NUMBER INPUT SPINNERS (Use custom React control buttons) */
