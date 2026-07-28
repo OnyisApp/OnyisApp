@@ -38,32 +38,6 @@ export default function GlobalChat({ username, isConnected, triggerToast }) {
     return () => unsubscribe();
   }, [username]);
 
-  // Ambient background chat activity loop
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const mockDegens = [
-        { name: 'Pepe_HODL', badge: 'DEGEN', text: 'who is flipping HEADS right now?', color: '#9DA6B4' },
-        { name: '0xAlpha_G', badge: 'PRO', text: 'RUGO rugged at 2.45x lol', color: '#2EBD85' },
-        { name: 'MoonShot_Pro', badge: 'WHALE', text: 'Just deposited on Robinhood Vault ⚡', color: '#FFDF00' },
-        { name: 'EthMaxi_77', badge: 'DEGEN', text: 'ONYIS UX is clean 🔥', color: '#9DA6B4' }
-      ];
-
-      const randomMsg = mockDegens[Math.floor(Math.random() * mockDegens.length)];
-      const newMsg = {
-        id: `ambient-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
-        user: randomMsg.name,
-        badge: randomMsg.badge,
-        text: randomMsg.text,
-        time: 'Just now',
-        color: randomMsg.color
-      };
-
-      setMessages(prev => [...prev.slice(-40), newMsg]);
-    }, 18000);
-
-    return () => clearInterval(interval);
-  }, []);
-
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!inputText.trim()) return;
