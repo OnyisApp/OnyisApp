@@ -1,12 +1,42 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageSquare, Send, ChevronRight, ChevronLeft, Shield, Sparkles, User, Circle } from 'lucide-react';
+import { MessageSquare, Send, ChevronRight, ChevronLeft, Circle } from 'lucide-react';
 import { realtimeHub } from '../lib/realtimeHub';
+import { generateRandomBotPlayer } from '../utils/botGenerator';
+
+const BOT_CHAT_LINES = [
+  // Wins & Hypes
+  { text: 'LFG 🚀 just 3x on RUGO!', badge: 'PRO', color: '#2EBD85' },
+  { text: 'BOLO dropped 41x 💀 should have held longer', badge: 'DEGEN', color: '#9DA6B4' },
+  { text: 'FLIPO heads 4x in a row let\'s gooo', badge: 'WHALE', color: '#FFDF00' },
+  { text: 'Robinhood Chain speed is insane ⚡ 0 gas', badge: 'DEGEN', color: '#9DA6B4' },
+  { text: 'up 0.3 ETH this session 👀', badge: 'PRO', color: '#2EBD85' },
+  { text: 'RUGO 7.2x cashout just hit diff', badge: 'VIP', color: '#E5C158' },
+  { text: 'can\'t believe I rugged at 1.03x 💀', badge: 'DEGEN', color: '#9DA6B4' },
+  { text: 'anyone else staking? APY looking spicy 🔥', badge: 'PRO', color: '#2EBD85' },
+  { text: 'BOLO plinko 110x slot is literally impossible to hit', badge: 'DEGEN', color: '#9DA6B4' },
+  { text: 'this is the cleanest UI in all of DeFi no cap', badge: 'WHALE', color: '#FFDF00' },
+  { text: 'just deposited another 50 USDG, let\'s see', badge: 'DEGEN', color: '#9DA6B4' },
+  { text: 'FLIPO payout is 1.96x, math hits 👌', badge: 'PRO', color: '#2EBD85' },
+  { text: '3rd time rugging on RUGO at under 2x bro 😭', badge: 'DEGEN', color: '#9DA6B4' },
+  { text: 'wagmi frens 🤝', badge: 'WHALE', color: '#FFDF00' },
+  { text: 'zero gas is actually the future', badge: 'PRO', color: '#2EBD85' },
+  { text: 'ONYIS > everything else built on robinhood', badge: 'VIP', color: '#E5C158' },
+  { text: '41x on BOLO is wild, who engineers these odds?', badge: 'DEGEN', color: '#9DA6B4' },
+  { text: 'just checked the vault, staking rewards compounding 🧨', badge: 'PRO', color: '#2EBD85' },
+  { text: 'bulls stay winning 🐂', badge: 'WHALE', color: '#FFDF00' },
+  { text: 'man rugged 5x in a row, variance is unreal', badge: 'DEGEN', color: '#9DA6B4' },
+  { text: 'provably fair on chain 🔐 can\'t argue', badge: 'PRO', color: '#2EBD85' },
+  { text: 'cashing out before the next RUGO spikes 🚀', badge: 'VIP', color: '#E5C158' },
+  { text: 'need a bigger bankroll honestly', badge: 'DEGEN', color: '#9DA6B4' },
+  { text: 'Robinhood Chain mainnet confirmed fast 🏎️', badge: 'WHALE', color: '#FFDF00' },
+  { text: 'depositing ETH next time, USDG flow is smooth', badge: 'PRO', color: '#2EBD85' },
+];
 
 const INITIAL_MESSAGES = [
-  { id: 1, user: 'Satoshi_King', badge: 'WHALE', text: 'LFG! 🚀 Just won 0.098 ETH on FLIPO!', time: '2m ago', color: '#FFDF00' },
-  { id: 2, user: 'DegenApe_99', badge: 'PRO', text: 'RUGO candle pumping hard today! 📈', time: '1m ago', color: '#2EBD85' },
-  { id: 3, user: 'Robinhooder_1', badge: 'DEGEN', text: 'BOLO hit 14x risk drop, crazy multiplier 🔥', time: '30s ago', color: '#9DA6B4' },
-  { id: 4, user: 'Whale_Watcher', badge: 'WHALE', text: 'Robinhood Chain speed is fast ⚡', time: '10s ago', color: '#FFDF00' }
+  { id: 'init-1', user: 'Satoshi_King', badge: 'WHALE', text: 'LFG! 🚀 Just won 0.098 ETH on FLIPO!', time: '2m ago', color: '#FFDF00' },
+  { id: 'init-2', user: 'DegenApe_99', badge: 'PRO', text: 'RUGO candle pumping hard today! 📈', time: '1m ago', color: '#2EBD85' },
+  { id: 'init-3', user: 'Robinhooder_1', badge: 'DEGEN', text: 'BOLO hit 14x risk drop, crazy multiplier 🔥', time: '30s ago', color: '#9DA6B4' },
+  { id: 'init-4', user: 'Whale_Watcher', badge: 'WHALE', text: 'Robinhood Chain speed is fast ⚡', time: '10s ago', color: '#FFDF00' }
 ];
 
 export default function GlobalChat({ username, isConnected, triggerToast }) {
@@ -14,6 +44,7 @@ export default function GlobalChat({ username, isConnected, triggerToast }) {
   const [messages, setMessages] = useState(INITIAL_MESSAGES);
   const [inputText, setInputText] = useState('');
   const chatBottomRef = useRef(null);
+  const botTimerRef = useRef(null);
 
   // Auto scroll to bottom when new message arrives
   useEffect(() => {
@@ -22,21 +53,46 @@ export default function GlobalChat({ username, isConnected, triggerToast }) {
     }
   }, [messages, isOpen]);
 
-  // Subscribe to Unified RealtimeHub chat messages
+  // Subscribe to Unified RealtimeHub chat messages (real user messages from other devices)
   useEffect(() => {
     const unsubscribe = realtimeHub.onChat((newMsg) => {
       if (!newMsg || !newMsg.id) return;
       setMessages(prev => {
         if (prev.some(m => String(m.id) === String(newMsg.id))) return prev;
-        return [...prev.slice(-50), {
+        return [...prev.slice(-60), {
           ...newMsg,
           isMe: newMsg.user === `@${username}`
         }];
       });
     });
-
     return () => unsubscribe();
   }, [username]);
+
+  // Bot chat activity loop — fires every 8–18 seconds, local only (never spams Supabase)
+  useEffect(() => {
+    const fireBotChat = () => {
+      const line = BOT_CHAT_LINES[Math.floor(Math.random() * BOT_CHAT_LINES.length)];
+      const botName = generateRandomBotPlayer();
+      const botMsg = {
+        id: `bot-chat-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+        user: botName,
+        badge: line.badge,
+        text: line.text,
+        time: 'Just now',
+        color: line.color,
+        isMe: false
+      };
+
+      setMessages(prev => [...prev.slice(-60), botMsg]);
+
+      const delay = 8000 + Math.random() * 10000; // 8–18 seconds
+      botTimerRef.current = setTimeout(fireBotChat, delay);
+    };
+
+    // First bot fires after 4s
+    botTimerRef.current = setTimeout(fireBotChat, 4000);
+    return () => clearTimeout(botTimerRef.current);
+  }, []);
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -56,8 +112,6 @@ export default function GlobalChat({ username, isConnected, triggerToast }) {
     };
 
     setInputText('');
-
-    // Broadcast across all connected devices and browsers via RealtimeHub
     realtimeHub.sendChatMessage(myMsg);
   };
 

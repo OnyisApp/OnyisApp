@@ -1,140 +1,117 @@
 import { supabase } from './supabase';
-import { Peer } from 'peerjs';
 
-// Triple-Engine Realtime Hub (PeerJS WebRTC Mesh + Native BroadcastChannel + Supabase)
+// Quad-Engine Realtime Hub
+// Engine 1: Web API BroadcastChannel (same-browser cross-tab, instant)
+// Engine 2: LocalStorage storage event (same-browser cross-window, instant)
+// Engine 3: Supabase Realtime Broadcast (cross-device, cross-phone, global)
+// Engine 4: Supabase DB Polling (mobile 4G/5G fallback, 3s interval, deduped)
 class RealtimeHub {
   constructor() {
     this.channel = null;
     this.broadcastChannel = null;
-    this.peer = null;
-    this.peerConns = new Map();
     this.chatListeners = new Set();
     this.activityListeners = new Set();
-    this.myPeerId = 'onyis_peer_' + Math.random().toString(36).substring(2, 9);
+    this.seenChatIds = new Set();
+    this.seenActivityIds = new Set();
+    this.lastChatPollTs = Date.now();
+    this.lastActivityPollTs = Date.now();
+    this.pollInterval = null;
     this.init();
   }
 
   init() {
     if (typeof window === 'undefined') return;
 
-    // 1. Web API BroadcastChannel
+    // 1. Web API BroadcastChannel (same origin, instant, cross-tab & cross-window)
     try {
-      this.broadcastChannel = new BroadcastChannel('onyis_realtime_hub_v3');
+      this.broadcastChannel = new BroadcastChannel('onyis_realtime_hub_v4');
       this.broadcastChannel.onmessage = (event) => {
         const { type, payload } = event.data || {};
-        if (type === 'CHAT_MESSAGE') this.notifyChat(payload);
-        else if (type === 'ACTIVITY_EVENT') this.notifyActivity(payload);
+        if (type === 'CHAT_MESSAGE') this._notifyChat(payload);
+        else if (type === 'ACTIVITY_EVENT') this._notifyActivity(payload);
       };
     } catch (e) {}
 
-    // 2. Storage event listener for window sync
+    // 2. Storage event listener (cross-window fallback)
     window.addEventListener('storage', (e) => {
-      if (e.key === 'onyis_broadcast_chat_v3' && e.newValue) {
-        try { this.notifyChat(JSON.parse(e.newValue)); } catch (err) {}
-      } else if (e.key === 'onyis_broadcast_activity_v3' && e.newValue) {
-        try { this.notifyActivity(JSON.parse(e.newValue)); } catch (err) {}
+      if (e.key === 'onyis_bc_chat_v4' && e.newValue) {
+        try { this._notifyChat(JSON.parse(e.newValue)); } catch (err) {}
+      } else if (e.key === 'onyis_bc_activity_v4' && e.newValue) {
+        try { this._notifyActivity(JSON.parse(e.newValue)); } catch (err) {}
       }
     });
 
-    // 3. PeerJS WebRTC Cross-Browser & Mobile 4G/5G Carrier NAT Mesh Network
-    try {
-      this.peer = new Peer(this.myPeerId, {
-        debug: 0,
-        config: {
-          iceServers: [
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:stun1.l.google.com:19302' },
-            { urls: 'stun:stun2.l.google.com:19302' },
-            { urls: 'stun:stun3.l.google.com:19302' },
-            { urls: 'stun:stun4.l.google.com:19302' },
-            { urls: 'stun:global.stun.twilio.com:3478' }
-          ]
-        }
-      });
-      
-      this.peer.on('open', () => {
-        this.connectToPeerRoom();
-      });
-
-      this.peer.on('connection', (conn) => {
-        this.bindPeerConn(conn);
-      });
-    } catch (err) {
-      console.warn('PeerJS realtime mesh init notice:', err);
-    }
-
-    // 4. Supabase Realtime Channel
+    // 3. Supabase Realtime Broadcast + DB Polling (cross-device, cross-phone)
     if (supabase) {
       try {
-        this.channel = supabase.channel('room:onyis_global_v3', {
-          config: { broadcast: { self: true } }
+        this.channel = supabase.channel('room:onyis_global_v4', {
+          config: { broadcast: { self: false } }  // self=false: don't echo back to sender
         });
 
         this.channel.on('broadcast', { event: 'CHAT_MESSAGE' }, ({ payload }) => {
-          this.notifyChat(payload);
+          this._notifyChat(payload);
         });
 
         this.channel.on('broadcast', { event: 'ACTIVITY_EVENT' }, ({ payload }) => {
-          this.notifyActivity(payload);
+          this._notifyActivity(payload);
         });
 
         this.channel.subscribe();
       } catch (err) {}
 
-      // 5. Mobile 4G/5G Polling Engine Fallback (2s interval for iOS/Android Safari sync)
-      try {
-        this.pollInterval = setInterval(async () => {
-          try {
-            const { data } = await supabase
-              .from('global_chat')
-              .select('*')
-              .order('created_at', { ascending: false })
-              .limit(20);
-
-            if (data && data.length > 0) {
-              data.reverse().forEach(m => {
-                this.notifyChat({
-                  id: m.id,
-                  user: m.username,
-                  badge: m.badge || 'DEGEN',
-                  text: m.message,
-                  time: new Date(m.created_at || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                  color: m.color || '#9DA6B4'
-                });
-              });
-            }
-          } catch (e) {}
-        }, 2000);
-      } catch (e) {}
-    }
-  }
-
-  bindPeerConn(conn) {
-    conn.on('open', () => {
-      this.peerConns.set(conn.peer, conn);
-    });
-
-    conn.on('data', (data) => {
-      if (!data || !data.type) return;
-      if (data.type === 'CHAT_MESSAGE') this.notifyChat(data.payload);
-      else if (data.type === 'ACTIVITY_EVENT') this.notifyActivity(data.payload);
-    });
-
-    const cleanup = () => this.peerConns.delete(conn.peer);
-    conn.on('close', cleanup);
-    conn.on('error', cleanup);
-  }
-
-  connectToPeerRoom() {
-    const anchors = ['onyis_mesh_anchor_1', 'onyis_mesh_anchor_2', 'onyis_mesh_anchor_3'];
-    anchors.forEach(anchorId => {
-      if (this.peer && !this.peer.destroyed && anchorId !== this.myPeerId) {
+      // 4. Mobile/Safari Polling Fallback — DEDUPED by timestamp (only fetches NEW rows)
+      this.pollInterval = setInterval(async () => {
         try {
-          const conn = this.peer.connect(anchorId);
-          this.bindPeerConn(conn);
+          // Poll new chat messages since last poll
+          const chatCutoff = new Date(this.lastChatPollTs - 1000).toISOString();
+          const { data: chatData } = await supabase
+            .from('global_chat')
+            .select('*')
+            .gt('created_at', chatCutoff)
+            .order('created_at', { ascending: true })
+            .limit(10);
+
+          if (chatData && chatData.length > 0) {
+            this.lastChatPollTs = Date.now();
+            chatData.forEach(m => {
+              this._notifyChat({
+                id: `db-${m.id}`,
+                user: m.username,
+                badge: m.badge || 'DEGEN',
+                text: m.message,
+                time: new Date(m.created_at || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                color: m.color || '#9DA6B4'
+              });
+            });
+          }
+
+          // Poll new activity events since last poll
+          const actCutoff = new Date(this.lastActivityPollTs - 1000).toISOString();
+          const { data: actData } = await supabase
+            .from('live_activity')
+            .select('*')
+            .gt('created_at', actCutoff)
+            .order('created_at', { ascending: true })
+            .limit(10);
+
+          if (actData && actData.length > 0) {
+            this.lastActivityPollTs = Date.now();
+            actData.forEach(a => {
+              this._notifyActivity({
+                id: `db-act-${a.id}`,
+                game: a.game,
+                player: a.player,
+                bet: a.bet,
+                outcome: a.outcome,
+                status: a.status,
+                multiplier: a.multiplier,
+                time: 'Just now'
+              });
+            });
+          }
         } catch (e) {}
-      }
-    });
+      }, 3000);
+    }
   }
 
   onChat(callback) {
@@ -147,51 +124,56 @@ class RealtimeHub {
     return () => this.activityListeners.delete(callback);
   }
 
-  notifyChat(payload) {
+  _notifyChat(payload) {
     if (!payload || !payload.id) return;
+    const key = String(payload.id);
+    if (this.seenChatIds.has(key)) return;
+    this.seenChatIds.add(key);
+    // Keep set bounded
+    if (this.seenChatIds.size > 500) {
+      const first = this.seenChatIds.values().next().value;
+      this.seenChatIds.delete(first);
+    }
     this.chatListeners.forEach(cb => { try { cb(payload); } catch (e) {} });
   }
 
-  notifyActivity(payload) {
+  _notifyActivity(payload) {
     if (!payload || !payload.id) return;
+    const key = String(payload.id);
+    if (this.seenActivityIds.has(key)) return;
+    this.seenActivityIds.add(key);
+    if (this.seenActivityIds.size > 500) {
+      const first = this.seenActivityIds.values().next().value;
+      this.seenActivityIds.delete(first);
+    }
     this.activityListeners.forEach(cb => { try { cb(payload); } catch (e) {} });
   }
 
   sendChatMessage(msgPayload) {
-    // A. Local Listeners
-    this.notifyChat(msgPayload);
+    // Mark as seen immediately (self-send dedup)
+    if (msgPayload.id) this.seenChatIds.add(String(msgPayload.id));
 
-    // B. Native Web API BroadcastChannel
+    // Notify local listeners
+    this.chatListeners.forEach(cb => { try { cb(msgPayload); } catch (e) {} });
+
+    // BroadcastChannel (same-browser cross-tab)
     if (this.broadcastChannel) {
-      try {
-        this.broadcastChannel.postMessage({ type: 'CHAT_MESSAGE', payload: msgPayload });
-      } catch (e) {}
+      try { this.broadcastChannel.postMessage({ type: 'CHAT_MESSAGE', payload: msgPayload }); } catch (e) {}
     }
 
-    // C. LocalStorage Cross-Window Event
+    // LocalStorage trigger (cross-window)
     try {
-      localStorage.setItem('onyis_broadcast_chat_v3', JSON.stringify({ ...msgPayload, _ts: Date.now() }));
+      localStorage.setItem('onyis_bc_chat_v4', JSON.stringify({ ...msgPayload, _ts: Date.now() }));
     } catch (e) {}
 
-    // D. PeerJS WebRTC P2P DataChannel (Cross-Incognito & Cross-Device)
-    this.peerConns.forEach(conn => {
-      if (conn && conn.open) {
-        try { conn.send({ type: 'CHAT_MESSAGE', payload: msgPayload }); } catch (e) {}
-      }
-    });
-
-    // E. Supabase Realtime Broadcast
+    // Supabase Realtime Broadcast (cross-device, cross-phone, global)
     if (this.channel) {
       try {
-        this.channel.send({
-          type: 'broadcast',
-          event: 'CHAT_MESSAGE',
-          payload: msgPayload
-        });
+        this.channel.send({ type: 'broadcast', event: 'CHAT_MESSAGE', payload: msgPayload });
       } catch (e) {}
     }
 
-    // F. Persist to Supabase DB (if available)
+    // Supabase DB persist (message history)
     if (supabase) {
       supabase.from('global_chat').insert([{
         username: msgPayload.user,
@@ -203,38 +185,46 @@ class RealtimeHub {
   }
 
   sendActivityEvent(activityPayload) {
-    // A. Local Listeners
-    this.notifyActivity(activityPayload);
+    // Mark as seen immediately
+    if (activityPayload.id) this.seenActivityIds.add(String(activityPayload.id));
 
-    // B. Native Web API BroadcastChannel
+    // Notify local listeners
+    this.activityListeners.forEach(cb => { try { cb(activityPayload); } catch (e) {} });
+
+    // BroadcastChannel
     if (this.broadcastChannel) {
-      try {
-        this.broadcastChannel.postMessage({ type: 'ACTIVITY_EVENT', payload: activityPayload });
-      } catch (e) {}
+      try { this.broadcastChannel.postMessage({ type: 'ACTIVITY_EVENT', payload: activityPayload }); } catch (e) {}
     }
 
-    // C. LocalStorage Cross-Window Event
+    // LocalStorage trigger
     try {
-      localStorage.setItem('onyis_broadcast_activity_v3', JSON.stringify({ ...activityPayload, _ts: Date.now() }));
+      localStorage.setItem('onyis_bc_activity_v4', JSON.stringify({ ...activityPayload, _ts: Date.now() }));
     } catch (e) {}
 
-    // D. PeerJS WebRTC P2P DataChannel (Cross-Incognito & Cross-Device)
-    this.peerConns.forEach(conn => {
-      if (conn && conn.open) {
-        try { conn.send({ type: 'ACTIVITY_EVENT', payload: activityPayload }); } catch (e) {}
-      }
-    });
-
-    // E. Supabase Realtime Broadcast
+    // Supabase Realtime Broadcast (cross-device global)
     if (this.channel) {
       try {
-        this.channel.send({
-          type: 'broadcast',
-          event: 'ACTIVITY_EVENT',
-          payload: activityPayload
-        });
+        this.channel.send({ type: 'broadcast', event: 'ACTIVITY_EVENT', payload: activityPayload });
       } catch (e) {}
     }
+
+    // Supabase DB persist (activity history for polling fallback)
+    if (supabase) {
+      supabase.from('live_activity').insert([{
+        game: activityPayload.game,
+        player: activityPayload.player,
+        bet: activityPayload.bet,
+        outcome: activityPayload.outcome,
+        status: activityPayload.status,
+        multiplier: activityPayload.multiplier
+      }]).then(() => {}).catch(() => {});
+    }
+  }
+
+  destroy() {
+    if (this.pollInterval) clearInterval(this.pollInterval);
+    if (this.broadcastChannel) { try { this.broadcastChannel.close(); } catch (e) {} }
+    if (this.channel && supabase) { try { supabase.removeChannel(this.channel); } catch (e) {} }
   }
 }
 

@@ -18,6 +18,8 @@ import LoadingScreen from './components/LoadingScreen';
 import { Scale, ShieldCheck, BookOpen, FileText, Share2, Copy, CheckCheck } from 'lucide-react';
 import { soundEngine } from './utils/soundEngine';
 import { realtimeHub } from './lib/realtimeHub';
+import { supabase } from './lib/supabase';
+import { generateRandomBotPlayer } from './utils/botGenerator';
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
