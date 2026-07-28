@@ -17,9 +17,7 @@ import StakingPage from './components/StakingPage';
 import LoadingScreen from './components/LoadingScreen';
 import { Scale, ShieldCheck, BookOpen, FileText, Share2, Copy, CheckCheck } from 'lucide-react';
 import { soundEngine } from './utils/soundEngine';
-import { supabase } from './lib/supabase';
-
-import { generateRandomBotPlayer } from './utils/botGenerator';
+import { realtimeHub } from './lib/realtimeHub';
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -80,11 +78,23 @@ export default function App() {
     { id: 4, game: 'FLIPO', player: '0x8f...11b2', bet: '10.00 USDG', outcome: '+19.60 USDG', status: 'WIN', multiplier: '1.96x', time: '45s ago' }
   ]);
 
+  // Subscribe to real-time activity events across devices
+  useEffect(() => {
+    const unsubscribe = realtimeHub.onActivity((newActivity) => {
+      if (!newActivity || !newActivity.id) return;
+      setLiveActivities(prev => {
+        if (prev.some(a => String(a.id) === String(newActivity.id))) return prev;
+        return [newActivity, ...prev.slice(0, 5)];
+      });
+    });
+    return () => unsubscribe();
+  }, []);
+
   const addLiveActivity = (game, player, wager, mult, payout, isWin, currencySymbol) => {
     const symbol = currencySymbol || selectedCurrency;
     const payoutVal = parseFloat(payout) || 0;
     const newActivity = {
-      id: Date.now() + Math.random(),
+      id: `act-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
       game,
       player: player || `@${username}`,
       bet: `${wager} ${symbol}`,
@@ -94,7 +104,8 @@ export default function App() {
       time: 'Just now'
     };
 
-    setLiveActivities(prev => [newActivity, ...prev.slice(0, 5)]);
+    // Broadcast across all connected devices and browser instances
+    realtimeHub.sendActivityEvent(newActivity);
 
     // Automatically route & log 2% House Fee into Staking Vault in Supabase
     if (supabase) {
