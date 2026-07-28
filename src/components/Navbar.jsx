@@ -58,6 +58,7 @@ export default function Navbar({ balance, setBalance, selectedCurrency = 'ETH', 
     return saved;
   };
 
+  const burnerAddress = getBurnerAddress();
   const isWalletConnected = authenticated || isConnected;
   const walletAddress = user?.wallet?.address 
     ? `${user.wallet.address.slice(0, 6)}...${user.wallet.address.slice(-4)}`
