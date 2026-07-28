@@ -112,7 +112,7 @@ export default function App() {
     }
 
     // Only award XP & update Session Stats if the activity belongs to the active user (not bots)
-    const isUserActivity = player === `@${username}` || player === username;
+    const isUserActivity = player === `@${username}` || player === username || (username && player?.includes(username));
     if (isUserActivity) {
       const wagerVal = parseFloat(wager) || 0;
       const payoutVal = parseFloat(payout) || 0;

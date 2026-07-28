@@ -47,7 +47,7 @@ export default function CoinflipGame({ balance, setBalance, isConnected, addLive
     setBalance(prev => +(prev - betVal).toFixed(selectedCurrency === 'USDG' ? 2 : 4), selectedCurrency);
 
     setTimeout(() => {
-      const isWin = Math.random() > 0.49; // 50/50 fair odds with 2% house edge
+      const isWin = Math.random() < 0.50; // Exact 50/50 odds with 1.96x payout (98% RTP, 2% house edge)
       const winningSide = isWin ? side : (side === 'HEADS' ? 'TAILS' : 'HEADS');
       const payout = isWin ? (betVal * 1.96).toFixed(selectedCurrency === 'USDG' ? 2 : 4) : '0';
 
