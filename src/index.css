@@ -310,25 +310,31 @@ html, body {
 }
 
 /* GAME SELECTOR & NAVBAR MOBILE RESPONSIVE FIXES */
+.mobile-navbar-bar {
+  display: none !important;
+}
+
 @media (max-width: 768px) {
+  .desktop-navbar-pill {
+    display: none !important;
+  }
+
+  .mobile-navbar-bar {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .navbar-main-header {
+    padding: 10px 12px !important;
+  }
+
   .game-selector-grid {
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 10px !important;
     padding: 0 12px !important;
     margin-top: 16px !important;
-  }
-
-  .navbar-main-header {
-    flex-wrap: wrap !important;
-    justify-content: center !important;
-    padding: 8px 12px !important;
-    gap: 8px !important;
-  }
-
-  .navbar-controls {
-    flex-wrap: wrap !important;
-    justify-content: center !important;
-    width: 100% !important;
   }
 
   .hide-on-mobile {

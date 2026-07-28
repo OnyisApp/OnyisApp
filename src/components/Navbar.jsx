@@ -312,7 +312,7 @@ export default function Navbar({ balance, setBalance, selectedCurrency = 'ETH', 
         </div>
 
         {/* Navigation & Action Bar: All Controls Grouped into One Unified Bar */}
-        <div className="navbar-controls" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div className="navbar-controls desktop-navbar-pill" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           
           {/* Session P&L Tracker Pill (Compact Single-Line) */}
           <div style={{
@@ -769,6 +769,150 @@ export default function Navbar({ balance, setBalance, selectedCurrency = 'ETH', 
               {soundMuted ? <VolumeX size={15} color="#FF5400" /> : <Volume2 size={15} color="var(--accent-gold)" />}
             </button>
           )}
+        </div>
+
+        {/* Dedicated Mobile Header Bar (Ultra-Precise & Compact 2-Row Layout) */}
+        <div className="mobile-navbar-bar" style={{ display: 'none' }}>
+          {/* Mobile Row 1: Logo & Vault Balance Actions */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <img src="/htmlonyis.png" alt="ONYIS Logo" style={{ width: '26px', height: '26px', borderRadius: '6px' }} />
+              <span className="gold-gradient-text" style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '1.05rem', letterSpacing: '1px' }}>
+                ONYIS
+              </span>
+              <span style={{ fontSize: '0.45rem', fontWeight: 800, padding: '1px 3px', borderRadius: '3px', background: 'rgba(212, 175, 55, 0.15)', border: '1px solid var(--border-gold)', color: 'var(--text-gold)' }}>
+                BETA
+              </span>
+            </div>
+
+            {/* Mobile Actions */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              {/* Vault Balance Display */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--bg-secondary)', padding: '3px 7px', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
+                <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-gold)', fontFamily: 'monospace' }}>
+                  {safeBalance.toFixed(selectedCurrency === 'USDG' ? 2 : 4)}
+                </span>
+                {setSelectedCurrency && (
+                  <div style={{ display: 'flex', gap: '1px', background: 'rgba(0,0,0,0.4)', padding: '1px', borderRadius: '6px' }}>
+                    {['ETH', 'USDG'].map(curr => (
+                      <button
+                        key={curr}
+                        onClick={() => setSelectedCurrency(curr)}
+                        style={{
+                          background: selectedCurrency === curr ? 'var(--accent-gold-gradient)' : 'transparent',
+                          color: selectedCurrency === curr ? '#000' : 'var(--text-muted)',
+                          border: 'none',
+                          borderRadius: '4px',
+                          padding: '1px 4px',
+                          fontSize: '0.6rem',
+                          fontWeight: 800,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {curr}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Deposit */}
+              <button
+                onClick={() => setShowDepositModal(true)}
+                style={{
+                  padding: '4px 8px',
+                  fontSize: '0.7rem',
+                  fontWeight: 700,
+                  borderRadius: '10px',
+                  background: 'rgba(46, 189, 133, 0.18)',
+                  border: '1px solid rgba(46, 189, 133, 0.4)',
+                  color: 'var(--status-success)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '2px',
+                  cursor: 'pointer'
+                }}
+              >
+                <ArrowDownRight size={11} /> Deposit
+              </button>
+
+              {/* Withdraw */}
+              <button
+                onClick={() => setShowWithdrawModal(true)}
+                style={{
+                  padding: '4px 8px',
+                  fontSize: '0.7rem',
+                  fontWeight: 700,
+                  borderRadius: '10px',
+                  background: 'rgba(255, 255, 255, 0.06)',
+                  border: '1px solid var(--border-subtle)',
+                  color: 'var(--text-primary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '2px',
+                  cursor: 'pointer'
+                }}
+              >
+                <ArrowUpRight size={11} /> Withdraw
+              </button>
+            </div>
+          </div>
+
+          {/* Mobile Row 2: Level Progress, P&L, Mute Toggle */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: '6px', marginTop: '6px' }}>
+            <button
+              onClick={onOpenXP}
+              style={{
+                background: 'rgba(212, 175, 55, 0.08)',
+                border: '1px solid rgba(212, 175, 55, 0.25)',
+                padding: '3px 8px',
+                borderRadius: '10px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+                cursor: 'pointer'
+              }}
+            >
+              <Shield size={12} color="var(--accent-gold)" />
+              <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                Lvl {level} · <span style={{ color: 'var(--text-gold)' }}>{getRankTitle(level)}</span>
+              </span>
+            </button>
+
+            <div style={{
+              fontSize: '0.65rem',
+              fontWeight: 700,
+              padding: '2px 6px',
+              borderRadius: '8px',
+              background: netPnl >= 0 ? 'rgba(46, 189, 133, 0.1)' : 'rgba(255, 84, 0, 0.1)',
+              border: netPnl >= 0 ? '1px solid rgba(46, 189, 133, 0.3)' : '1px solid rgba(255, 84, 0, 0.3)',
+              color: netPnl >= 0 ? '#2EBD85' : '#FF5400',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '3px'
+            }}>
+              <TrendingUp size={10} color={netPnl >= 0 ? '#2EBD85' : '#FF5400'} />
+              <span>P&L: {netPnl >= 0 ? '+' : ''}{formattedPnl}</span>
+            </div>
+
+            {onToggleSound && (
+              <button
+                onClick={onToggleSound}
+                style={{
+                  background: 'rgba(212, 175, 55, 0.08)',
+                  border: '1px solid var(--border-gold)',
+                  borderRadius: '8px',
+                  padding: '3px 6px',
+                  color: soundMuted ? 'var(--status-danger)' : 'var(--accent-gold)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center'
+                }}
+              >
+                {soundMuted ? <VolumeX size={12} /> : <Volume2 size={12} />}
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
