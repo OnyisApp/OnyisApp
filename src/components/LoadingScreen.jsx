@@ -20,7 +20,7 @@ export default function LoadingScreen({ onComplete }) {
         setIsFadingOut(true);
         setTimeout(() => {
           if (onComplete) onComplete();
-        }, 500); // 500ms smooth curtain fade out
+        }, 650); // 650ms smooth portal zoom-in transition
       }
     }, 20);
 
@@ -31,7 +31,7 @@ export default function LoadingScreen({ onComplete }) {
     if (progress < 30) return 'CONNECTING TO ROBINHOOD CHAIN MAINNET (ID: 4663)...';
     if (progress < 65) return 'INITIALIZING DEDICATED BURNER VAULT & RPC...';
     if (progress < 90) return 'SYNCHRONIZING REVSHARE STAKING ORACLE...';
-    return 'READY — WELCOME TO ONYIS PLATFORM';
+    return 'READY — ENTERING ONYIS PLATFORM...';
   };
 
   return (
@@ -44,7 +44,7 @@ export default function LoadingScreen({ onComplete }) {
         height: '100vh',
         backgroundColor: '#08090C',
         backgroundImage: `
-          radial-gradient(circle at 50% 40%, rgba(212, 175, 55, 0.12) 0%, transparent 60%),
+          radial-gradient(circle at 50% 40%, rgba(212, 175, 55, 0.15) 0%, transparent 60%),
           radial-gradient(circle at 15% 85%, rgba(46, 189, 133, 0.08) 0%, transparent 50%)
         `,
         display: 'flex',
@@ -53,10 +53,10 @@ export default function LoadingScreen({ onComplete }) {
         justifyContent: 'center',
         zIndex: 99999,
         opacity: isFadingOut ? 0 : 1,
-        transform: isFadingOut ? 'scale(1.04)' : 'scale(1)',
-        transition: 'opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
+        transition: 'opacity 0.65s cubic-bezier(0.7, 0, 0.3, 1)',
         pointerEvents: isFadingOut ? 'none' : 'all',
-        userSelect: 'none'
+        userSelect: 'none',
+        overflow: 'hidden'
       }}
     >
       {/* Cybernetic Tech Grid Overlay */}
@@ -73,8 +73,15 @@ export default function LoadingScreen({ onComplete }) {
         pointerEvents: 'none'
       }} />
 
-      {/* Main Logo Container with Pulsing Gold Aura */}
-      <div style={{ position: 'relative', marginBottom: '32px' }}>
+      {/* Main Logo Container with Dramatic Portal Zoom-In Effect */}
+      <div style={{
+        position: 'relative',
+        marginBottom: '32px',
+        transform: isFadingOut ? 'scale(12)' : 'scale(1)',
+        opacity: isFadingOut ? 0 : 1,
+        filter: isFadingOut ? 'brightness(2.5) blur(4px)' : 'brightness(1) blur(0px)',
+        transition: 'transform 0.65s cubic-bezier(0.7, 0, 0.3, 1), opacity 0.65s ease-in, filter 0.65s ease-in'
+      }}>
         {/* Pulsing Aura Rings */}
         <div style={{
           position: 'absolute',
@@ -84,7 +91,7 @@ export default function LoadingScreen({ onComplete }) {
           width: '180px',
           height: '180px',
           borderRadius: '50%',
-          background: 'rgba(212, 175, 55, 0.15)',
+          background: 'rgba(212, 175, 55, 0.25)',
           filter: 'blur(30px)',
           animation: 'pulse 2s ease-in-out infinite'
         }} />
@@ -94,9 +101,9 @@ export default function LoadingScreen({ onComplete }) {
           width: '140px',
           height: '140px',
           borderRadius: '50%',
-          background: 'rgba(17, 19, 24, 0.85)',
-          border: '2px solid rgba(212, 175, 55, 0.5)',
-          boxShadow: '0 0 35px rgba(212, 175, 55, 0.3), inset 0 0 20px rgba(212, 175, 55, 0.15)',
+          background: 'rgba(17, 19, 24, 0.9)',
+          border: '2px solid rgba(212, 175, 55, 0.6)',
+          boxShadow: '0 0 45px rgba(212, 175, 55, 0.4), inset 0 0 25px rgba(212, 175, 55, 0.25)',
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
           display: 'flex',
@@ -112,83 +119,91 @@ export default function LoadingScreen({ onComplete }) {
               width: '100%',
               height: '100%',
               objectFit: 'contain',
-              filter: 'drop-shadow(0 0 10px rgba(212, 175, 55, 0.6))'
+              filter: 'drop-shadow(0 0 12px rgba(212, 175, 55, 0.8))'
             }}
           />
         </div>
       </div>
 
-      {/* Brand Title */}
-      <h1 style={{
-        fontFamily: 'Outfit, sans-serif',
-        fontSize: '2rem',
-        fontWeight: 900,
-        letterSpacing: '4px',
-        color: '#E5C158',
-        marginBottom: '6px',
-        textShadow: '0 0 20px rgba(212, 175, 55, 0.4)'
-      }}>
-        ONYIS
-      </h1>
-
+      {/* Brand Title & UI Controls Container - Fades Out smoothly */}
       <div style={{
-        fontSize: '0.72rem',
-        color: 'var(--text-muted)',
-        letterSpacing: '2px',
-        textTransform: 'uppercase',
-        marginBottom: '40px',
-        fontWeight: 600
+        textAlign: 'center',
+        opacity: isFadingOut ? 0 : 1,
+        transform: isFadingOut ? 'translateY(20px) scale(0.95)' : 'translateY(0) scale(1)',
+        transition: 'opacity 0.4s ease-out, transform 0.4s ease-out'
       }}>
-        Onchain Native Yield Instant Settlement
-      </div>
-
-      {/* Progress Bar Container */}
-      <div style={{ width: '320px', maxWidth: '85vw', textAlign: 'center' }}>
-        <div style={{
-          display: 'flex',
-          justify: 'space-between',
-          alignItems: 'center',
-          marginBottom: '8px',
-          fontSize: '0.78rem'
+        {/* Brand Title */}
+        <h1 style={{
+          fontFamily: 'Outfit, sans-serif',
+          fontSize: '2rem',
+          fontWeight: 900,
+          letterSpacing: '4px',
+          color: '#E5C158',
+          marginBottom: '6px',
+          textShadow: '0 0 20px rgba(212, 175, 55, 0.4)'
         }}>
-          <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem', letterSpacing: '0.5px' }}>
-            SYSTEM BOOT
-          </span>
-          <span style={{ color: 'var(--text-gold)', fontFamily: 'monospace', fontWeight: 800 }}>
-            {progress}%
-          </span>
+          ONYIS
+        </h1>
+
+        <div style={{
+          fontSize: '0.72rem',
+          color: 'var(--text-muted)',
+          letterSpacing: '2px',
+          textTransform: 'uppercase',
+          marginBottom: '40px',
+          fontWeight: 600
+        }}>
+          Onchain Native Yield Instant Settlement
         </div>
 
-        {/* Bar Track */}
-        <div style={{
-          width: '100%',
-          height: '6px',
-          background: 'rgba(255, 255, 255, 0.06)',
-          borderRadius: '10px',
-          overflow: 'hidden',
-          border: '1px solid rgba(212, 175, 55, 0.2)',
-          position: 'relative'
-        }}>
+        {/* Progress Bar Container */}
+        <div style={{ width: '320px', maxWidth: '85vw', margin: '0 auto', textAlign: 'center' }}>
           <div style={{
-            height: '100%',
-            width: `${progress}%`,
-            background: 'linear-gradient(90deg, #D4AF37 0%, #2EBD85 100%)',
-            boxShadow: '0 0 12px rgba(212, 175, 55, 0.8)',
-            borderRadius: '10px',
-            transition: 'width 0.05s linear'
-          }} />
-        </div>
+            display: 'flex',
+            justify: 'space-between',
+            alignItems: 'center',
+            marginBottom: '8px',
+            fontSize: '0.78rem'
+          }}>
+            <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem', letterSpacing: '0.5px' }}>
+              SYSTEM BOOT
+            </span>
+            <span style={{ color: 'var(--text-gold)', fontFamily: 'monospace', fontWeight: 800 }}>
+              {progress}%
+            </span>
+          </div>
 
-        {/* Dynamic Status Text */}
-        <div style={{
-          fontSize: '0.68rem',
-          color: '#9DA6B4',
-          marginTop: '14px',
-          fontFamily: 'monospace',
-          height: '18px',
-          letterSpacing: '0.5px'
-        }}>
-          {getStatusText()}
+          {/* Bar Track */}
+          <div style={{
+            width: '100%',
+            height: '6px',
+            background: 'rgba(255, 255, 255, 0.06)',
+            borderRadius: '10px',
+            overflow: 'hidden',
+            border: '1px solid rgba(212, 175, 55, 0.2)',
+            position: 'relative'
+          }}>
+            <div style={{
+              height: '100%',
+              width: `${progress}%`,
+              background: 'linear-gradient(90deg, #D4AF37 0%, #2EBD85 100%)',
+              boxShadow: '0 0 12px rgba(212, 175, 55, 0.8)',
+              borderRadius: '10px',
+              transition: 'width 0.05s linear'
+            }} />
+          </div>
+
+          {/* Dynamic Status Text */}
+          <div style={{
+            fontSize: '0.68rem',
+            color: '#9DA6B4',
+            marginTop: '14px',
+            fontFamily: 'monospace',
+            height: '18px',
+            letterSpacing: '0.5px'
+          }}>
+            {getStatusText()}
+          </div>
         </div>
       </div>
 
@@ -200,7 +215,9 @@ export default function LoadingScreen({ onComplete }) {
         alignItems: 'center',
         gap: '20px',
         fontSize: '0.7rem',
-        color: 'var(--text-muted)'
+        color: 'var(--text-muted)',
+        opacity: isFadingOut ? 0 : 1,
+        transition: 'opacity 0.3s ease-out'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <Zap size={13} color="#2EBD85" />
