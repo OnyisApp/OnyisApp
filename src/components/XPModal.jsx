@@ -141,42 +141,62 @@ export default function XPModal({ isOpen, onClose, level = 0, xp, nextLevelXp })
           </div>
         </div>
 
-        {/* Level Thresholds Table */}
+        {/* VIP Active Perks & Unlocks Card */}
+        <div style={{
+          padding: '14px',
+          background: 'rgba(212, 175, 55, 0.08)',
+          border: '1px solid var(--border-gold)',
+          borderRadius: '10px',
+          marginBottom: '16px',
+          fontSize: '0.8rem'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <span style={{ color: 'var(--text-gold)', fontWeight: 700 }}>ACTIVE VIP PERKS:</span>
+            <span style={{ color: 'var(--status-success)', fontWeight: 800 }}>{level > 0 ? `${(level * 1.5).toFixed(1)}% Rakeback` : '0% Rakeback'}</span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', color: 'var(--text-secondary)', fontSize: '0.76rem' }}>
+            <div>• 🎁 Level-Up Bonus: <strong style={{ color: 'var(--text-primary)' }}>{level === 0 ? '5 USDG at Lvl 1' : `${level * 25} USDG Unlocked`}</strong></div>
+            <div>• ⚡ Weekly Rakeback: <strong style={{ color: 'var(--text-primary)' }}>{level > 0 ? `${(level * 1.5).toFixed(1)}% Cash Back` : 'Unlocks at Level 1'}</strong></div>
+            <div>• 👑 VIP Chat Nameplate: <strong style={{ color: 'var(--text-primary)' }}>{level >= 3 ? 'GOLD EMBLEM' : 'Unlocks at Level 3'}</strong></div>
+          </div>
+        </div>
+
+        {/* Level Thresholds & Perks Table */}
         <div style={{
           padding: '12px 16px',
           background: 'var(--bg-secondary)',
           border: '1px solid var(--border-subtle)',
           borderRadius: '10px',
           marginBottom: '16px',
-          maxHeight: '140px',
+          maxHeight: '160px',
           overflowY: 'auto',
-          fontSize: '0.78rem'
+          fontSize: '0.76rem'
         }}>
           <div style={{ color: 'var(--text-gold)', fontWeight: 700, marginBottom: '8px', letterSpacing: '0.5px' }}>
-            VIP LEVEL THRESHOLDS (1 XP = $1):
+            VIP LEVEL PERKS & REWARDS MATRIX:
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', color: 'var(--text-muted)' }}>
-            <div>L0 → L1: <strong style={{ color: 'var(--text-primary)' }}>250 XP</strong></div>
-            <div>L1 → L2: <strong style={{ color: 'var(--text-primary)' }}>500 XP</strong></div>
-            <div>L2 → L3: <strong style={{ color: 'var(--text-primary)' }}>1,000 XP</strong></div>
-            <div>L3 → L4: <strong style={{ color: 'var(--text-primary)' }}>2,000 XP</strong></div>
-            <div>L4 → L5: <strong style={{ color: 'var(--text-primary)' }}>5,000 XP</strong></div>
-            <div>L5 → L6: <strong style={{ color: 'var(--text-primary)' }}>7,000 XP</strong></div>
-            <div>L6 → L7: <strong style={{ color: 'var(--text-primary)' }}>8,500 XP</strong></div>
-            <div>L7 → L8: <strong style={{ color: 'var(--text-primary)' }}>10,000 XP</strong></div>
-            <div>L8 → L9: <strong style={{ color: 'var(--text-primary)' }}>20,000 XP</strong></div>
-            <div>L9 → L10: <strong style={{ color: 'var(--text-primary)' }}>50,000 XP</strong></div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', color: 'var(--text-muted)' }}>
+            <div>🥉 L1 (250 XP): <strong style={{ color: '#2EBD85' }}>0.5% Rakeback</strong> · 5 USDG Bonus</div>
+            <div>🥈 L2 (500 XP): <strong style={{ color: '#2EBD85' }}>1.0% Rakeback</strong> · 15 USDG Bonus</div>
+            <div>🥇 L3 (1,000 XP): <strong style={{ color: '#2EBD85' }}>2.0% Rakeback</strong> · 35 USDG + Gold Chat Badge</div>
+            <div>💎 L4 (2,000 XP): <strong style={{ color: '#2EBD85' }}>3.5% Rakeback</strong> · Priority Withdrawals</div>
+            <div>🔮 L5 (5,000 XP): <strong style={{ color: '#2EBD85' }}>5.0% Rakeback</strong> · 100 USDG + 0.05% Lossback</div>
+            <div>👑 L6 (7,000 XP): <strong style={{ color: '#2EBD85' }}>7.0% Rakeback</strong> · 200 USDG Bonus</div>
+            <div>⚡ L7 (8,500 XP): <strong style={{ color: '#2EBD85' }}>9.0% Rakeback</strong> · 350 USDG Bonus</div>
+            <div>🔥 L8 (10,000 XP): <strong style={{ color: '#2EBD85' }}>11.0% Rakeback</strong> · Overlord Tag</div>
+            <div>🏆 L9 (20,000 XP): <strong style={{ color: '#2EBD85' }}>13.5% Rakeback</strong> · 1,000 USDG + Personal Concierge</div>
+            <div>🌌 L10+ (50,000 XP): <strong style={{ color: '#2EBD85' }}>15.0% MAX Rakeback</strong> · 2,500 USDG + Airdrop Priority</div>
           </div>
         </div>
 
         {/* Rules Box */}
         <div style={{
-          padding: '14px',
+          padding: '12px',
           background: 'rgba(212, 175, 55, 0.06)',
           border: '1px solid var(--border-gold)',
           borderRadius: '10px',
           textAlign: 'center',
-          fontSize: '0.82rem',
+          fontSize: '0.78rem',
           color: 'var(--text-secondary)',
           lineHeight: 1.5
         }}>
