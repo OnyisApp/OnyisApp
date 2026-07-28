@@ -14,6 +14,7 @@ export default function GlobalChat({ username, isConnected, triggerToast }) {
   const [messages, setMessages] = useState(INITIAL_MESSAGES);
   const [inputText, setInputText] = useState('');
   const chatBottomRef = useRef(null);
+  const channelRef = useRef(null);
 
   // Auto scroll to bottom when new message arrives
   useEffect(() => {
@@ -22,22 +23,66 @@ export default function GlobalChat({ username, isConnected, triggerToast }) {
     }
   }, [messages, isOpen]);
 
-  // Safe Supabase subscriber wrapper
+  // Realtime Supabase Broadcast + DB Sync Engine (Multi-Browser Cross-Sync)
   useEffect(() => {
     if (!supabase) return;
 
-    let channel;
+    // Create Supabase Realtime Channel with Broadcast enabled
+    const channel = supabase.channel('room:global_chat', {
+      config: {
+        broadcast: { self: true }
+      }
+    });
 
-    const initSupabaseChat = async () => {
+    channelRef.current = channel;
+
+    // 1. Listen to Realtime P2P Broadcast events across all open browsers
+    channel.on('broadcast', { event: 'chat_msg' }, ({ payload }) => {
+      if (!payload || !payload.id) return;
+      setMessages(prev => {
+        if (prev.some(m => String(m.id) === String(payload.id))) return prev;
+        return [...prev.slice(-50), {
+          ...payload,
+          isMe: payload.user === `@${username}`
+        }];
+      });
+    });
+
+    // 2. Listen to Postgres DB CDC Changes (Fallback)
+    channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'global_chat' }, payload => {
+      const newM = payload.new;
+      if (!newM) return;
+      const formattedMsg = {
+        id: newM.id,
+        user: newM.username,
+        badge: newM.badge || 'DEGEN',
+        text: newM.message,
+        time: new Date(newM.created_at || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        color: newM.color || '#9DA6B4',
+        isMe: newM.username === `@${username}`
+      };
+
+      setMessages(prev => {
+        if (prev.some(m => String(m.id) === String(formattedMsg.id))) return prev;
+        return [...prev.slice(-50), formattedMsg];
+      });
+    });
+
+    channel.subscribe((status) => {
+      console.log('GlobalChat realtime channel status:', status);
+    });
+
+    // Initial fetch from DB
+    const fetchChatHistory = async () => {
       try {
         const { data, error } = await supabase
           .from('global_chat')
           .select('*')
-          .order('created_at', { ascending: true })
-          .limit(50);
+          .order('created_at', { ascending: false })
+          .limit(30);
 
         if (!error && data && data.length > 0) {
-          setMessages(data.map(m => ({
+          const sorted = data.reverse().map(m => ({
             id: m.id,
             user: m.username,
             badge: m.badge || 'DEGEN',
@@ -45,33 +90,15 @@ export default function GlobalChat({ username, isConnected, triggerToast }) {
             time: new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             color: m.color || '#9DA6B4',
             isMe: m.username === `@${username}`
-          })));
+          }));
+          setMessages(sorted);
         }
-
-        channel = supabase
-          .channel('public:global_chat')
-          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'global_chat' }, payload => {
-            const newM = payload.new;
-            if (!newM) return;
-            const formattedMsg = {
-              id: newM.id,
-              user: newM.username,
-              badge: newM.badge || 'DEGEN',
-              text: newM.message,
-              time: new Date(newM.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-              color: newM.color || '#9DA6B4',
-              isMe: newM.username === `@${username}`
-            };
-
-            setMessages(prev => [...prev.filter(m => m.id !== formattedMsg.id), formattedMsg]);
-          })
-          .subscribe();
       } catch (err) {
-        console.warn('Supabase chat sync network notice:', err);
+        console.warn('Initial chat history load notice:', err);
       }
     };
 
-    initSupabaseChat();
+    fetchChatHistory();
 
     return () => {
       if (channel && supabase) {
@@ -80,7 +107,7 @@ export default function GlobalChat({ username, isConnected, triggerToast }) {
     };
   }, [username]);
 
-  // Demo chat loop simulation
+  // Gentle ambient chat activity loop (Appends only when idle)
   useEffect(() => {
     const interval = setInterval(() => {
       const mockDegens = [
@@ -92,7 +119,7 @@ export default function GlobalChat({ username, isConnected, triggerToast }) {
 
       const randomMsg = mockDegens[Math.floor(Math.random() * mockDegens.length)];
       const newMsg = {
-        id: Date.now() + Math.random(),
+        id: `ambient-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
         user: randomMsg.name,
         badge: randomMsg.badge,
         text: randomMsg.text,
@@ -101,7 +128,7 @@ export default function GlobalChat({ username, isConnected, triggerToast }) {
       };
 
       setMessages(prev => [...prev.slice(-40), newMsg]);
-    }, 9000);
+    }, 15000);
 
     return () => clearInterval(interval);
   }, []);
@@ -114,20 +141,33 @@ export default function GlobalChat({ username, isConnected, triggerToast }) {
     const myUsername = `@${username}`;
 
     const myMsg = {
-      id: Date.now(),
+      id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
       user: myUsername,
       badge: 'VIP',
       text: textToSend,
-      time: 'Just now',
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       color: '#E5C158',
       isMe: true
     };
 
-    // Optimistic UI Update (Immediate display for sender - ZERO ERROR MODALS)
-    setMessages(prev => [...prev, myMsg]);
+    // 1. Local Optimistic UI Update
+    setMessages(prev => [...prev.slice(-50), myMsg]);
     setInputText('');
 
-    // Insert to Supabase DB silently with quiet error handling
+    // 2. Broadcast INSTANTLY to all open browser windows via Supabase Realtime Channel
+    if (channelRef.current) {
+      try {
+        channelRef.current.send({
+          type: 'broadcast',
+          event: 'chat_msg',
+          payload: myMsg
+        });
+      } catch (err) {
+        console.warn('Realtime broadcast send notice:', err);
+      }
+    }
+
+    // 3. Persist to Supabase Database
     if (supabase) {
       try {
         await supabase
@@ -141,7 +181,7 @@ export default function GlobalChat({ username, isConnected, triggerToast }) {
             }
           ]);
       } catch (err) {
-        console.warn('Silent Supabase chat insert notice:', err);
+        console.warn('Supabase chat insert notice:', err);
       }
     }
   };
