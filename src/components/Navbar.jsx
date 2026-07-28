@@ -1011,11 +1011,31 @@ export default function Navbar({ balance, setBalance, selectedCurrency = 'ETH', 
 
             <form onSubmit={handleWithdraw}>
               <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                  Amount ({selectedCurrency})
-                </label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <label style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                    Amount ({selectedCurrency})
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setWithdrawAmount(safeBalance.toString())}
+                    style={{
+                      background: 'rgba(212, 175, 55, 0.15)',
+                      border: '1px solid var(--border-gold)',
+                      borderRadius: '4px',
+                      color: 'var(--text-gold)',
+                      fontSize: '0.68rem',
+                      fontWeight: 800,
+                      padding: '2px 8px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    MAX ({safeBalance.toFixed(selectedCurrency === 'USDG' ? 2 : 4)})
+                  </button>
+                </div>
                 <input
                   type="number"
+                  min={selectedCurrency === 'USDG' ? "1.00" : "0.0001"}
+                  max={safeBalance.toString()}
                   step={selectedCurrency === 'USDG' ? "0.01" : "0.0001"}
                   required
                   placeholder={selectedCurrency === 'USDG' ? "10.00" : "0.05"}
