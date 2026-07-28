@@ -15,6 +15,7 @@ export default function GlobalChat({ username, isConnected, triggerToast }) {
   const [inputText, setInputText] = useState('');
   const chatBottomRef = useRef(null);
   const channelRef = useRef(null);
+  const broadcastChannelRef = useRef(null);
 
   // Auto scroll to bottom when new message arrives
   useEffect(() => {
@@ -23,91 +24,145 @@ export default function GlobalChat({ username, isConnected, triggerToast }) {
     }
   }, [messages, isOpen]);
 
-  // Realtime Supabase Broadcast + DB Sync Engine (Multi-Browser Cross-Sync)
+  // ─── DUAL REALTIME ENGINE: Web API BroadcastChannel + Supabase Realtime ───
   useEffect(() => {
-    if (!supabase) return;
-
-    // Create Supabase Realtime Channel with Broadcast enabled
-    const channel = supabase.channel('room:global_chat', {
-      config: {
-        broadcast: { self: true }
-      }
-    });
-
-    channelRef.current = channel;
-
-    // 1. Listen to Realtime P2P Broadcast events across all open browsers
-    channel.on('broadcast', { event: 'chat_msg' }, ({ payload }) => {
-      if (!payload || !payload.id) return;
-      setMessages(prev => {
-        if (prev.some(m => String(m.id) === String(payload.id))) return prev;
-        return [...prev.slice(-50), {
-          ...payload,
-          isMe: payload.user === `@${username}`
-        }];
-      });
-    });
-
-    // 2. Listen to Postgres DB CDC Changes (Fallback)
-    channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'global_chat' }, payload => {
-      const newM = payload.new;
-      if (!newM) return;
-      const formattedMsg = {
-        id: newM.id,
-        user: newM.username,
-        badge: newM.badge || 'DEGEN',
-        text: newM.message,
-        time: new Date(newM.created_at || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        color: newM.color || '#9DA6B4',
-        isMe: newM.username === `@${username}`
-      };
-
-      setMessages(prev => {
-        if (prev.some(m => String(m.id) === String(formattedMsg.id))) return prev;
-        return [...prev.slice(-50), formattedMsg];
-      });
-    });
-
-    channel.subscribe((status) => {
-      console.log('GlobalChat realtime channel status:', status);
-    });
-
-    // Initial fetch from DB
-    const fetchChatHistory = async () => {
+    // 1. Native Browser P2P BroadcastChannel (Works 100% across browser windows & tabs instantly)
+    if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
       try {
-        const { data, error } = await supabase
-          .from('global_chat')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(30);
+        const bc = new BroadcastChannel('onyis_global_chat_channel');
+        broadcastChannelRef.current = bc;
 
-        if (!error && data && data.length > 0) {
-          const sorted = data.reverse().map(m => ({
-            id: m.id,
-            user: m.username,
-            badge: m.badge || 'DEGEN',
-            text: m.message,
-            time: new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            color: m.color || '#9DA6B4',
-            isMe: m.username === `@${username}`
-          }));
-          setMessages(sorted);
-        }
+        bc.onmessage = (event) => {
+          const payload = event.data;
+          if (payload && payload.id) {
+            setMessages(prev => {
+              if (prev.some(m => String(m.id) === String(payload.id))) return prev;
+              const updated = [...prev.slice(-50), {
+                ...payload,
+                isMe: payload.user === `@${username}`
+              }];
+              try {
+                localStorage.setItem('onyis_chat_history_v2', JSON.stringify(updated.slice(-30)));
+              } catch (e) {}
+              return updated;
+            });
+          }
+        };
       } catch (err) {
-        console.warn('Initial chat history load notice:', err);
+        console.warn('BroadcastChannel initialization notice:', err);
+      }
+    }
+
+    // 2. Storage event listener for cross-window sync
+    const handleStorageChange = (e) => {
+      if (e.key === 'onyis_chat_history_v2' && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setMessages(parsed.map(m => ({
+              ...m,
+              isMe: m.user === `@${username}`
+            })));
+          }
+        } catch (err) {}
       }
     };
 
-    fetchChatHistory();
+    window.addEventListener('storage', handleStorageChange);
+
+    // Initial load from localStorage
+    try {
+      const saved = localStorage.getItem('onyis_chat_history_v2');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setMessages(parsed.map(m => ({
+            ...m,
+            isMe: m.user === `@${username}`
+          })));
+        }
+      }
+    } catch (e) {}
+
+    // 3. Supabase Realtime Channel (If Supabase is configured)
+    if (supabase) {
+      try {
+        const channel = supabase.channel('room:global_chat', {
+          config: { broadcast: { self: true } }
+        });
+
+        channelRef.current = channel;
+
+        channel.on('broadcast', { event: 'chat_msg' }, ({ payload }) => {
+          if (!payload || !payload.id) return;
+          setMessages(prev => {
+            if (prev.some(m => String(m.id) === String(payload.id))) return prev;
+            return [...prev.slice(-50), {
+              ...payload,
+              isMe: payload.user === `@${username}`
+            }];
+          });
+        });
+
+        channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'global_chat' }, payload => {
+          const newM = payload.new;
+          if (!newM) return;
+          const formattedMsg = {
+            id: newM.id,
+            user: newM.username,
+            badge: newM.badge || 'DEGEN',
+            text: newM.message,
+            time: new Date(newM.created_at || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            color: newM.color || '#9DA6B4',
+            isMe: newM.username === `@${username}`
+          };
+
+          setMessages(prev => {
+            if (prev.some(m => String(m.id) === String(formattedMsg.id))) return prev;
+            return [...prev.slice(-50), formattedMsg];
+          });
+        });
+
+        channel.subscribe();
+
+        // Initial DB fetch
+        supabase
+          .from('global_chat')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(30)
+          .then(({ data, error }) => {
+            if (!error && data && data.length > 0) {
+              const sorted = data.reverse().map(m => ({
+                id: m.id,
+                user: m.username,
+                badge: m.badge || 'DEGEN',
+                text: m.message,
+                time: new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                color: m.color || '#9DA6B4',
+                isMe: m.username === `@${username}`
+              }));
+              setMessages(sorted);
+            }
+          })
+          .catch(() => {});
+      } catch (err) {
+        console.warn('Supabase realtime init notice:', err);
+      }
+    }
 
     return () => {
-      if (channel && supabase) {
-        supabase.removeChannel(channel);
+      if (broadcastChannelRef.current) {
+        try { broadcastChannelRef.current.close(); } catch (e) {}
+      }
+      window.removeEventListener('storage', handleStorageChange);
+      if (channelRef.current && supabase) {
+        try { supabase.removeChannel(channelRef.current); } catch (e) {}
       }
     };
   }, [username]);
 
-  // Gentle ambient chat activity loop (Appends only when idle)
+  // Ambient background chat activity loop
   useEffect(() => {
     const interval = setInterval(() => {
       const mockDegens = [
@@ -128,7 +183,7 @@ export default function GlobalChat({ username, isConnected, triggerToast }) {
       };
 
       setMessages(prev => [...prev.slice(-40), newMsg]);
-    }, 15000);
+    }, 18000);
 
     return () => clearInterval(interval);
   }, []);
@@ -150,11 +205,26 @@ export default function GlobalChat({ username, isConnected, triggerToast }) {
       isMe: true
     };
 
-    // 1. Local Optimistic UI Update
-    setMessages(prev => [...prev.slice(-50), myMsg]);
+    // 1. Local UI Update & LocalStorage Persistence
+    setMessages(prev => {
+      const next = [...prev.slice(-50), myMsg];
+      try {
+        localStorage.setItem('onyis_chat_history_v2', JSON.stringify(next.slice(-30)));
+      } catch (e) {}
+      return next;
+    });
     setInputText('');
 
-    // 2. Broadcast INSTANTLY to all open browser windows via Supabase Realtime Channel
+    // 2. Native Web API BroadcastChannel transmission (Instant P2P!)
+    if (broadcastChannelRef.current) {
+      try {
+        broadcastChannelRef.current.postMessage(myMsg);
+      } catch (err) {
+        console.warn('BroadcastChannel postMessage notice:', err);
+      }
+    }
+
+    // 3. Supabase Realtime Broadcast & DB insert
     if (channelRef.current) {
       try {
         channelRef.current.send({
@@ -162,12 +232,9 @@ export default function GlobalChat({ username, isConnected, triggerToast }) {
           event: 'chat_msg',
           payload: myMsg
         });
-      } catch (err) {
-        console.warn('Realtime broadcast send notice:', err);
-      }
+      } catch (err) {}
     }
 
-    // 3. Persist to Supabase Database
     if (supabase) {
       try {
         await supabase
@@ -180,9 +247,7 @@ export default function GlobalChat({ username, isConnected, triggerToast }) {
               color: '#E5C158'
             }
           ]);
-      } catch (err) {
-        console.warn('Supabase chat insert notice:', err);
-      }
+      } catch (err) {}
     }
   };
 
