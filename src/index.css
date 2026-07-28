@@ -321,16 +321,20 @@ html, body {
 
 @media (max-width: 768px) {
   .navbar-main-header {
-    padding: 8px 12px !important;
+    padding: 6px 10px !important;
+  }
+
+  .navbar-main-header > div {
     flex-wrap: nowrap !important;
     justify-content: space-between !important;
-    gap: 8px !important;
+    gap: 6px !important;
   }
 
   .navbar-controls-capsule {
-    max-width: calc(100vw - 120px) !important;
+    max-width: calc(100vw - 110px) !important;
     padding: 3px 6px !important;
-    gap: 5px !important;
+    gap: 4px !important;
+    flex-shrink: 1 !important;
   }
 
   .navbar-main-header > div:nth-child(2)::-webkit-scrollbar {

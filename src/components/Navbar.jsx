@@ -272,26 +272,28 @@ export default function Navbar({ balance, setBalance, selectedCurrency = 'ETH', 
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '8px'
+          flexWrap: 'nowrap',
+          gap: '8px',
+          width: '100%',
+          boxSizing: 'border-box'
         }}>
           {/* Brand Logo - Official htmlonyis.png */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
             <img
               src="/htmlonyis.png"
               alt="ONYIS Logo"
               style={{
-                width: '30px',
-                height: '30px',
-                borderRadius: '8px',
+                width: '28px',
+                height: '28px',
+                borderRadius: '6px',
                 objectFit: 'cover',
                 boxShadow: 'var(--shadow-gold)'
               }}
             />
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
               <h1 className="gold-gradient-text" style={{
                 fontFamily: 'var(--font-heading)',
-                fontSize: '1.15rem',
+                fontSize: '1.05rem',
                 fontWeight: 700,
                 letterSpacing: '1.5px',
                 lineHeight: 1,
@@ -300,9 +302,9 @@ export default function Navbar({ balance, setBalance, selectedCurrency = 'ETH', 
                 ONYIS
               </h1>
               <span style={{
-                fontSize: '0.5rem',
+                fontSize: '0.45rem',
                 fontWeight: 800,
-                padding: '1px 4px',
+                padding: '1px 3px',
                 borderRadius: '3px',
                 background: 'rgba(212, 175, 55, 0.15)',
                 border: '1px solid var(--border-gold)',
