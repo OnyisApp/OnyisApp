@@ -36,9 +36,21 @@ class RealtimeHub {
       }
     });
 
-    // 3. PeerJS WebRTC Cross-Browser / Cross-Incognito Mesh Network
+    // 3. PeerJS WebRTC Cross-Browser & Mobile 4G/5G Carrier NAT Mesh Network
     try {
-      this.peer = new Peer(this.myPeerId, { debug: 0 });
+      this.peer = new Peer(this.myPeerId, {
+        debug: 0,
+        config: {
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' },
+            { urls: 'stun:stun2.l.google.com:19302' },
+            { urls: 'stun:stun3.l.google.com:19302' },
+            { urls: 'stun:stun4.l.google.com:19302' },
+            { urls: 'stun:global.stun.twilio.com:3478' }
+          ]
+        }
+      });
       
       this.peer.on('open', () => {
         this.connectToPeerRoom();
@@ -68,6 +80,32 @@ class RealtimeHub {
 
         this.channel.subscribe();
       } catch (err) {}
+
+      // 5. Mobile 4G/5G Polling Engine Fallback (2s interval for iOS/Android Safari sync)
+      try {
+        this.pollInterval = setInterval(async () => {
+          try {
+            const { data } = await supabase
+              .from('global_chat')
+              .select('*')
+              .order('created_at', { ascending: false })
+              .limit(20);
+
+            if (data && data.length > 0) {
+              data.reverse().forEach(m => {
+                this.notifyChat({
+                  id: m.id,
+                  user: m.username,
+                  badge: m.badge || 'DEGEN',
+                  text: m.message,
+                  time: new Date(m.created_at || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                  color: m.color || '#9DA6B4'
+                });
+              });
+            }
+          } catch (e) {}
+        }, 2000);
+      } catch (e) {}
     }
   }
 
