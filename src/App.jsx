@@ -14,11 +14,13 @@ import TermsModal from './components/TermsModal';
 import ToastModal from './components/ToastModal';
 import XPModal from './components/XPModal';
 import StakingPage from './components/StakingPage';
+import LoadingScreen from './components/LoadingScreen';
 import { Scale, ShieldCheck, BookOpen, FileText, Share2, Copy, CheckCheck } from 'lucide-react';
 import { soundEngine } from './utils/soundEngine';
 import { supabase } from './lib/supabase';
 
 export default function App() {
+  const [isLoading, setIsLoading] = useState(true);
   // Multi-Token Balances State (ETH, USDG)
   const [selectedCurrency, setSelectedCurrency] = useState('ETH'); // 'ETH' | 'USDG'
   const selectedCurrencyRef = useRef(selectedCurrency);
@@ -244,6 +246,9 @@ export default function App() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'transparent', position: 'relative' }}>
+      {/* Animated Fullscreen Loading Screen */}
+      {isLoading && <LoadingScreen onComplete={() => setIsLoading(false)} />}
+
       {/* Floating Animated Web3 Ambient Glow Orbs */}
       <div className="bg-glow-orb-gold" />
       <div className="bg-glow-orb-emerald" />
