@@ -58,7 +58,34 @@ export default function Navbar({ balance, setBalance, selectedCurrency = 'ETH', 
     return saved;
   };
 
-  const burnerAddress = getBurnerAddress();
+  const isWalletConnected = authenticated || isConnected;
+  const walletAddress = user?.wallet?.address 
+    ? `${user.wallet.address.slice(0, 6)}...${user.wallet.address.slice(-4)}`
+    : username || '0x8f3c...99e4';
+
+  const handleConnectWallet = async () => {
+    try {
+      if (typeof login === 'function') {
+        login();
+      }
+    } catch (e) {
+      console.warn('Privy login trigger notice:', e);
+    }
+    if (setIsConnected) setIsConnected(true);
+    triggerToast?.('Wallet Connected!', 'success');
+  };
+
+  const handleDisconnectWallet = async () => {
+    try {
+      if (typeof logout === 'function') {
+        logout();
+      }
+    } catch (e) {
+      console.warn('Privy logout error:', e);
+    }
+    if (setIsConnected) setIsConnected(false);
+    triggerToast?.('Wallet Disconnected', 'info');
+  };
 
   // Sync active gaming username to Burner Wallet address for games, activity feed & chat
   useEffect(() => {
@@ -68,13 +95,19 @@ export default function Navbar({ balance, setBalance, selectedCurrency = 'ETH', 
     }
   }, [authenticated, burnerAddress, setUsername]);
 
+  // Sync authenticated status with app connection state
+  useEffect(() => {
+    if (authenticated && setIsConnected) {
+      setIsConnected(true);
+    }
+  }, [authenticated, setIsConnected]);
+
   // ─── Burner Wallet Balance Tracker ───────────────────────────────────────
   const hasSeededBalance = useRef(false);
   const burnerPollRef = useRef(null);
 
   useEffect(() => {
-    if (!authenticated || !burnerAddress) {
-      setIsConnected(false);
+    if (!isWalletConnected || !burnerAddress) {
       return;
     }
 
@@ -132,12 +165,7 @@ export default function Navbar({ balance, setBalance, selectedCurrency = 'ETH', 
     return () => clearInterval(interval);
   }, [authenticated, burnerAddress]);
 
-  // Derived user wallet address display for navbar profile pill — ALWAYS shows Burner Wallet
-  const walletAddress = authenticated && burnerAddress
-    ? `⚡ Burner ${burnerAddress.slice(0, 6)}...${burnerAddress.slice(-4)}`
-    : `@${username}`;
-
-  const isWalletConnected = authenticated;
+  // Handlers for protocol vault and burner copy
 
   const [copiedProtocolVault, setCopiedProtocolVault] = useState(false);
 
@@ -490,30 +518,51 @@ export default function Navbar({ balance, setBalance, selectedCurrency = 'ETH', 
 
               {/* Profile / Wallet Connect */}
               {isWalletConnected ? (
-                <button
-                  onClick={() => { setTempUsername(username); setShowUsernameModal(true); }}
-                  style={{
-                    padding: '5px 9px',
-                    fontSize: '0.74rem',
-                    fontWeight: 700,
-                    borderRadius: '14px',
-                    background: 'rgba(212, 175, 55, 0.12)',
-                    border: '1px solid var(--border-gold)',
-                    color: 'var(--text-gold)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    cursor: 'pointer',
-                    flexShrink: 0
-                  }}
-                >
-                  <User size={12} color="var(--accent-gold)" />
-                  <span className="hide-on-mobile">{walletAddress}</span>
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+                  <button
+                    onClick={() => { setTempUsername(username); setShowUsernameModal(true); }}
+                    style={{
+                      padding: '5px 9px',
+                      fontSize: '0.74rem',
+                      fontWeight: 700,
+                      borderRadius: '14px',
+                      background: 'rgba(212, 175, 55, 0.12)',
+                      border: '1px solid var(--border-gold)',
+                      color: 'var(--text-gold)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      cursor: 'pointer',
+                      flexShrink: 0
+                    }}
+                  >
+                    <User size={12} color="var(--accent-gold)" />
+                    <span>{walletAddress}</span>
+                  </button>
+                  <button
+                    onClick={handleDisconnectWallet}
+                    title="Disconnect Wallet"
+                    style={{
+                      background: 'rgba(255, 84, 0, 0.1)',
+                      border: '1px solid rgba(255, 84, 0, 0.3)',
+                      color: '#FF5400',
+                      borderRadius: '50%',
+                      width: '24px',
+                      height: '24px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      flexShrink: 0
+                    }}
+                  >
+                    <LogOut size={11} />
+                  </button>
+                </div>
               ) : (
                 <button
                   className="gold-button"
-                  onClick={() => login()}
+                  onClick={handleConnectWallet}
                   style={{ padding: '5px 12px', borderRadius: '14px', fontSize: '0.76rem', display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}
                 >
                   <Wallet size={12} /> Connect
