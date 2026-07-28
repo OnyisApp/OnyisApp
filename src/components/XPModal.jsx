@@ -1,31 +1,46 @@
-import React, { useState } from 'react';
-import { Award, ChevronLeft, ChevronRight, Zap, X, Shield } from 'lucide-react';
+import React from 'react';
+import { Award, Zap, X, Gift, Crown, Gem, Flame, Trophy, Sparkles, ShieldCheck, Coins } from 'lucide-react';
 
 export const getVipTitle = (lvl) => {
   const titles = [
-    { level: 0, title: 'Novice Degen', color: '#9DA6B4', badge: '🥉' },
-    { level: 1, title: 'Bronze Gambler', color: '#CD7F32', badge: '🥉' },
-    { level: 2, title: 'Silver Highroller', color: '#C0C0C0', badge: '🥈' },
-    { level: 3, title: 'Gold Chart Rider', color: '#FFD700', badge: '🥇' },
-    { level: 4, title: 'Platinum Bull', color: '#E5E4E2', badge: '💎' },
-    { level: 5, title: 'Diamond Whale', color: '#00FFFF', badge: '🔮' },
-    { level: 6, title: 'Master Apex', color: '#A020F0', badge: '👑' },
-    { level: 7, title: 'Grandmaster Monarch', color: '#9370DB', badge: '⚡' },
-    { level: 8, title: 'Overlord Syndicate', color: '#FF4500', badge: '🔥' },
-    { level: 9, title: 'Mythic Titan', color: '#2EBD85', badge: '🏆' },
-    { level: 10, title: 'ONYIS Sovereign', color: '#FFDF00', badge: '🌌' }
+    { level: 0, title: 'Novice Degen', color: '#9DA6B4', icon: Award },
+    { level: 1, title: 'Bronze Gambler', color: '#CD7F32', icon: Award },
+    { level: 2, title: 'Silver Highroller', color: '#C0C0C0', icon: Award },
+    { level: 3, title: 'Gold Chart Rider', color: '#FFD700', icon: Crown },
+    { level: 4, title: 'Platinum Bull', color: '#E5E4E2', icon: Gem },
+    { level: 5, title: 'Diamond Whale', color: '#00FFFF', icon: Sparkles },
+    { level: 6, title: 'Master Apex', color: '#A020F0', icon: ShieldCheck },
+    { level: 7, title: 'Grandmaster Monarch', color: '#9370DB', icon: Zap },
+    { level: 8, title: 'Overlord Syndicate', color: '#FF4500', icon: Flame },
+    { level: 9, title: 'Mythic Titan', color: '#2EBD85', icon: Trophy },
+    { level: 10, title: 'ONYIS Sovereign', color: '#FFDF00', icon: Sparkles }
   ];
   if (lvl < titles.length) return titles[lvl];
-  return { level: lvl, title: 'Degen King', color: '#FFDF00', badge: '👑' };
+  return { level: lvl, title: 'Degen King', color: '#FFDF00', icon: Crown };
 };
 
 export default function XPModal({ isOpen, onClose, level = 0, xp, nextLevelXp }) {
   if (!isOpen) return null;
 
   const currentVip = getVipTitle(level);
+  const VipIcon = currentVip.icon || Award;
+
   const safeXp = typeof xp === 'number' && !isNaN(xp) ? xp : 0;
-  const safeNextXp = typeof nextLevelXp === 'number' && !isNaN(nextLevelXp) && nextLevelXp > 0 ? nextLevelXp : 150;
+  const safeNextXp = typeof nextLevelXp === 'number' && !isNaN(nextLevelXp) && nextLevelXp > 0 ? nextLevelXp : 250;
   const progressPercent = Math.min(100, Math.max(0, Math.round((safeXp / safeNextXp) * 100)));
+
+  const matrixLevels = [
+    { lvl: 'L1', xp: '250 XP', rake: '0.5%', perk: '5 USDG Bonus', icon: Award, color: '#CD7F32' },
+    { lvl: 'L2', xp: '500 XP', rake: '1.0%', perk: '15 USDG Bonus', icon: Award, color: '#C0C0C0' },
+    { lvl: 'L3', xp: '1,000 XP', rake: '2.0%', perk: '35 USDG + Gold Chat Badge', icon: Crown, color: '#FFD700' },
+    { lvl: 'L4', xp: '2,000 XP', rake: '3.5%', perk: 'Priority Withdrawals', icon: Gem, color: '#E5E4E2' },
+    { lvl: 'L5', xp: '5,000 XP', rake: '5.0%', perk: '100 USDG + 0.05% Lossback', icon: Sparkles, color: '#00FFFF' },
+    { lvl: 'L6', xp: '7,000 XP', rake: '7.0%', perk: '200 USDG Bonus', icon: ShieldCheck, color: '#A020F0' },
+    { lvl: 'L7', xp: '8,500 XP', rake: '9.0%', perk: '350 USDG Bonus', icon: Zap, color: '#9370DB' },
+    { lvl: 'L8', xp: '10,000 XP', rake: '11.0%', perk: 'Overlord Tag', icon: Flame, color: '#FF4500' },
+    { lvl: 'L9', xp: '20,000 XP', rake: '13.5%', perk: '1,000 USDG + Personal Concierge', icon: Trophy, color: '#2EBD85' },
+    { lvl: 'L10+', xp: '50,000 XP', rake: '15.0% MAX', perk: '2,500 USDG + Airdrop Priority', icon: Sparkles, color: '#FFDF00' }
+  ];
 
   return (
     <div className="modal-overlay" style={{
@@ -82,22 +97,23 @@ export default function XPModal({ isOpen, onClose, level = 0, xp, nextLevelXp })
             fontWeight: 700,
             color: currentVip.color
           }}>
-            <span>{currentVip.badge}</span>
+            <VipIcon size={13} color={currentVip.color} />
             <span>Lvl {level} · {currentVip.title}</span>
           </div>
         </div>
 
         {/* Progress Display */}
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <div style={{ fontSize: '0.9rem', color: currentVip.color, fontWeight: 700, marginBottom: '2px' }}>
-            {currentVip.badge} {currentVip.title}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '0.9rem', color: currentVip.color, fontWeight: 700, marginBottom: '2px' }}>
+            <VipIcon size={15} color={currentVip.color} />
+            <span>{currentVip.title}</span>
           </div>
           <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '4px' }}>
             Current Progress: <strong style={{ color: 'var(--status-success)' }}>{progressPercent}%</strong>
           </div>
           
           <div style={{ fontSize: '1.8rem', fontFamily: 'var(--font-heading)', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '12px' }}>
-            {xp} / {nextLevelXp} XP
+            {safeXp} / {safeNextXp} XP
           </div>
 
           {/* Progress Bar */}
@@ -133,11 +149,11 @@ export default function XPModal({ isOpen, onClose, level = 0, xp, nextLevelXp })
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)' }}>
             <span>XP to Next Level:</span>
-            <strong style={{ color: 'var(--text-primary)' }}>{nextLevelXp - xp} XP</strong>
+            <strong style={{ color: 'var(--text-primary)' }}>{Math.max(0, safeNextXp - safeXp)} XP</strong>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)' }}>
             <span>Total XP Earned:</span>
-            <strong style={{ color: 'var(--text-gold)' }}>{xp} XP</strong>
+            <strong style={{ color: 'var(--text-gold)' }}>{safeXp} XP</strong>
           </div>
         </div>
 
@@ -150,14 +166,23 @@ export default function XPModal({ isOpen, onClose, level = 0, xp, nextLevelXp })
           marginBottom: '16px',
           fontSize: '0.8rem'
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
             <span style={{ color: 'var(--text-gold)', fontWeight: 700 }}>ACTIVE VIP PERKS:</span>
             <span style={{ color: 'var(--status-success)', fontWeight: 800 }}>{level > 0 ? `${(level * 1.5).toFixed(1)}% Rakeback` : '0% Rakeback'}</span>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', color: 'var(--text-secondary)', fontSize: '0.76rem' }}>
-            <div>• 🎁 Level-Up Bonus: <strong style={{ color: 'var(--text-primary)' }}>{level === 0 ? '5 USDG at Lvl 1' : `${level * 25} USDG Unlocked`}</strong></div>
-            <div>• ⚡ Weekly Rakeback: <strong style={{ color: 'var(--text-primary)' }}>{level > 0 ? `${(level * 1.5).toFixed(1)}% Cash Back` : 'Unlocks at Level 1'}</strong></div>
-            <div>• 👑 VIP Chat Nameplate: <strong style={{ color: 'var(--text-primary)' }}>{level >= 3 ? 'GOLD EMBLEM' : 'Unlocks at Level 3'}</strong></div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', color: 'var(--text-secondary)', fontSize: '0.78rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Gift size={14} color="var(--accent-gold)" />
+              <span>Level-Up Bonus: <strong style={{ color: 'var(--text-primary)' }}>{level === 0 ? '5 USDG at Lvl 1' : `${level * 25} USDG Unlocked`}</strong></span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Zap size={14} color="#2EBD85" />
+              <span>Weekly Rakeback: <strong style={{ color: 'var(--text-primary)' }}>{level > 0 ? `${(level * 1.5).toFixed(1)}% Cash Back` : 'Unlocks at Level 1'}</strong></span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Crown size={14} color="#FFD700" />
+              <span>VIP Chat Nameplate: <strong style={{ color: 'var(--text-primary)' }}>{level >= 3 ? 'GOLD EMBLEM' : 'Unlocks at Level 3'}</strong></span>
+            </div>
           </div>
         </div>
 
@@ -168,24 +193,25 @@ export default function XPModal({ isOpen, onClose, level = 0, xp, nextLevelXp })
           border: '1px solid var(--border-subtle)',
           borderRadius: '10px',
           marginBottom: '16px',
-          maxHeight: '160px',
+          maxHeight: '170px',
           overflowY: 'auto',
-          fontSize: '0.76rem'
+          fontSize: '0.78rem'
         }}>
-          <div style={{ color: 'var(--text-gold)', fontWeight: 700, marginBottom: '8px', letterSpacing: '0.5px' }}>
+          <div style={{ color: 'var(--text-gold)', fontWeight: 700, marginBottom: '10px', letterSpacing: '0.5px' }}>
             VIP LEVEL PERKS & REWARDS MATRIX:
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', color: 'var(--text-muted)' }}>
-            <div>🥉 L1 (250 XP): <strong style={{ color: '#2EBD85' }}>0.5% Rakeback</strong> · 5 USDG Bonus</div>
-            <div>🥈 L2 (500 XP): <strong style={{ color: '#2EBD85' }}>1.0% Rakeback</strong> · 15 USDG Bonus</div>
-            <div>🥇 L3 (1,000 XP): <strong style={{ color: '#2EBD85' }}>2.0% Rakeback</strong> · 35 USDG + Gold Chat Badge</div>
-            <div>💎 L4 (2,000 XP): <strong style={{ color: '#2EBD85' }}>3.5% Rakeback</strong> · Priority Withdrawals</div>
-            <div>🔮 L5 (5,000 XP): <strong style={{ color: '#2EBD85' }}>5.0% Rakeback</strong> · 100 USDG + 0.05% Lossback</div>
-            <div>👑 L6 (7,000 XP): <strong style={{ color: '#2EBD85' }}>7.0% Rakeback</strong> · 200 USDG Bonus</div>
-            <div>⚡ L7 (8,500 XP): <strong style={{ color: '#2EBD85' }}>9.0% Rakeback</strong> · 350 USDG Bonus</div>
-            <div>🔥 L8 (10,000 XP): <strong style={{ color: '#2EBD85' }}>11.0% Rakeback</strong> · Overlord Tag</div>
-            <div>🏆 L9 (20,000 XP): <strong style={{ color: '#2EBD85' }}>13.5% Rakeback</strong> · 1,000 USDG + Personal Concierge</div>
-            <div>🌌 L10+ (50,000 XP): <strong style={{ color: '#2EBD85' }}>15.0% MAX Rakeback</strong> · 2,500 USDG + Airdrop Priority</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {matrixLevels.map((m) => {
+              const MIcon = m.icon;
+              return (
+                <div key={m.lvl} style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)' }}>
+                  <MIcon size={13} color={m.color} style={{ flexShrink: 0 }} />
+                  <span>
+                    <strong style={{ color: m.color }}>{m.lvl} ({m.xp}):</strong> <strong style={{ color: '#2EBD85' }}>{m.rake} Rakeback</strong> · {m.perk}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
 
