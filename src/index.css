@@ -236,38 +236,58 @@ input[type="number"] {
   -webkit-text-fill-color: transparent;
 }
 
-/* MOBILE & RESPONSIVE DESIGN OVERHAUL (900px, 768px & 480px Breakpoints) */
-@media (max-width: 900px) {
-  .navbar-container {
-    flex-direction: column !important;
-    gap: 12px !important;
-    padding: 12px 16px !important;
-  }
-  
-  .navbar-controls {
-    flex-wrap: wrap !important;
-    justify-content: center !important;
-    width: 100% !important;
-  }
+/* MOBILE UI COMPACTNESS & PRECISION AUDIT OVERRIDES */
 
+/* Prevent horizontal body overflow globally */
+html, body {
+  overflow-x: hidden !important;
+  max-width: 100vw !important;
+}
+
+/* Staking Stats Grid */
+@media (max-width: 900px) {
+  .mobile-grid-stats {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
   .game-layout-grid {
     grid-template-columns: 1fr !important;
     gap: 16px !important;
+  }
+  .game-container-padding {
+    padding: 0 12px !important;
+    margin: 16px auto !important;
+  }
+}
+
+@media (max-width: 550px) {
+  .mobile-grid-stats {
+    grid-template-columns: 1fr !important;
   }
 }
 
 @media (max-width: 768px) {
   .glass-panel {
-    padding: 18px !important;
+    padding: 16px !important;
     border-radius: 14px !important;
   }
 
+  .modal-overlay {
+    padding: 12px !important;
+  }
+
   .modal-content {
-    width: 94vw !important;
-    max-width: 94vw !important;
-    padding: 20px !important;
-    max-height: 90vh !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 18px !important;
+    max-height: 88vh !important;
     overflow-y: auto !important;
+    border-radius: 14px !important;
+  }
+
+  /* Responsive Canvas Scaling */
+  canvas {
+    max-width: 100% !important;
+    height: auto !important;
   }
 
   .mobile-hide {
@@ -291,11 +311,15 @@ input[type="number"] {
 
 @media (max-width: 480px) {
   .gold-button {
-    padding: 10px 14px !important;
-    font-size: 0.8rem !important;
+    padding: 9px 12px !important;
+    font-size: 0.78rem !important;
   }
 
-  .hide-on-xs {
+  .hide-on-xs, .mobile-hide-sm {
     display: none !important;
+  }
+
+  .mobile-full-width {
+    width: 100% !important;
   }
 }

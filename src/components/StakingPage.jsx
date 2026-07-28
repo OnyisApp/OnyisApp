@@ -190,10 +190,10 @@ export default function StakingPage({ username, triggerToast }) {
 
   return (
     <>
-      <div style={{ maxWidth: '1240px', margin: '32px auto', padding: '0 24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      <div className="game-container-padding" style={{ maxWidth: '1240px', margin: '32px auto', padding: '0 24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
         {/* ── Protocol Stats Bar ── */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+        <div className="mobile-grid-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
           {[
             { label: 'Total $ONYIS Staked', value: `${(totalStaked / 1_000_000).toFixed(2)}M`, sub: `${((totalStaked / 1_000_000_000) * 100).toFixed(2)}% of supply`, icon: Coins, color: '#D4AF37' },
             { label: 'ETH Reward Pool', value: `${ethPool.toFixed(4)} ETH`, sub: 'Accumulates from game fees', icon: TrendingUp, color: '#2EBD85' },
@@ -219,7 +219,7 @@ export default function StakingPage({ username, triggerToast }) {
         </div>
 
         {/* ── Main Content: Stake Panel + Active Stakes ── */}
-        <div style={{ display: 'grid', gridTemplateColumns: '380px 1fr', gap: '24px', alignItems: 'start' }}>
+        <div className="game-layout-grid" style={{ display: 'grid', gridTemplateColumns: '380px 1fr', gap: '24px', alignItems: 'start' }}>
 
           {/* LEFT: Stake Control Panel */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
