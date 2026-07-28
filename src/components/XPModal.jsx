@@ -1,9 +1,28 @@
 import React, { useState } from 'react';
 import { Award, ChevronLeft, ChevronRight, Zap, X, Shield } from 'lucide-react';
 
-export default function XPModal({ isOpen, onClose, level, xp, nextLevelXp }) {
+export const getVipTitle = (lvl) => {
+  const titles = [
+    { level: 0, title: 'Novice Degen', color: '#9DA6B4', badge: '🥉' },
+    { level: 1, title: 'Bronze Gambler', color: '#CD7F32', badge: '🥉' },
+    { level: 2, title: 'Silver Highroller', color: '#C0C0C0', badge: '🥈' },
+    { level: 3, title: 'Gold Chart Rider', color: '#FFD700', badge: '🥇' },
+    { level: 4, title: 'Platinum Bull', color: '#E5E4E2', badge: '💎' },
+    { level: 5, title: 'Diamond Whale', color: '#00FFFF', badge: '🔮' },
+    { level: 6, title: 'Master Apex', color: '#A020F0', badge: '👑' },
+    { level: 7, title: 'Grandmaster Monarch', color: '#9370DB', badge: '⚡' },
+    { level: 8, title: 'Overlord Syndicate', color: '#FF4500', badge: '🔥' },
+    { level: 9, title: 'Mythic Titan', color: '#2EBD85', badge: '🏆' },
+    { level: 10, title: 'ONYIS Sovereign', color: '#FFDF00', badge: '🌌' }
+  ];
+  if (lvl < titles.length) return titles[lvl];
+  return { level: lvl, title: 'Degen King', color: '#FFDF00', badge: '👑' };
+};
+
+export default function XPModal({ isOpen, onClose, level = 0, xp, nextLevelXp }) {
   if (!isOpen) return null;
 
+  const currentVip = getVipTitle(level);
   const safeXp = typeof xp === 'number' && !isNaN(xp) ? xp : 0;
   const safeNextXp = typeof nextLevelXp === 'number' && !isNaN(nextLevelXp) && nextLevelXp > 0 ? nextLevelXp : 150;
   const progressPercent = Math.min(100, Math.max(0, Math.round((safeXp / safeNextXp) * 100)));
@@ -54,21 +73,25 @@ export default function XPModal({ isOpen, onClose, level, xp, nextLevelXp }) {
           <div style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '4px',
+            gap: '6px',
             padding: '4px 10px',
             borderRadius: '12px',
             background: 'rgba(212, 175, 55, 0.15)',
-            border: '1px solid var(--border-gold)',
+            border: `1px solid ${currentVip.color}`,
             fontSize: '0.75rem',
             fontWeight: 700,
-            color: 'var(--text-gold)'
+            color: currentVip.color
           }}>
-            <Shield size={12} /> Level {level}
+            <span>{currentVip.badge}</span>
+            <span>Lvl {level} · {currentVip.title}</span>
           </div>
         </div>
 
         {/* Progress Display */}
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+          <div style={{ fontSize: '0.9rem', color: currentVip.color, fontWeight: 700, marginBottom: '2px' }}>
+            {currentVip.badge} {currentVip.title}
+          </div>
           <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '4px' }}>
             Current Progress: <strong style={{ color: 'var(--status-success)' }}>{progressPercent}%</strong>
           </div>

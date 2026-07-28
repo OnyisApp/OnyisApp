@@ -230,12 +230,21 @@ export default function Navbar({ balance, setBalance, selectedCurrency = 'ETH', 
 
   const getRankTitle = (lvl) => {
     const safeLvl = typeof lvl === 'number' && !isNaN(lvl) ? lvl : 0;
-    if (safeLvl >= 20) return 'KING 👑';
-    if (safeLvl >= 15) return `WHALE ${safeLvl - 14}`;
-    if (safeLvl >= 10) return `GOLD ${safeLvl - 9}`;
-    if (safeLvl >= 6) return `SILVER ${safeLvl - 5}`;
-    if (safeLvl >= 3) return `BRONZE ${safeLvl - 2}`;
-    return `DEGEN ${safeLvl + 1}`;
+    const titles = [
+      'Novice Degen',
+      'Bronze Gambler',
+      'Silver Highroller',
+      'Gold Chart Rider',
+      'Platinum Bull',
+      'Diamond Whale',
+      'Master Apex',
+      'Grandmaster Monarch',
+      'Overlord Syndicate',
+      'Mythic Titan',
+      'ONYIS Sovereign'
+    ];
+    if (safeLvl < titles.length) return titles[safeLvl];
+    return 'Degen King';
   };
 
   const netPnl = selectedCurrency === 'USDG'
