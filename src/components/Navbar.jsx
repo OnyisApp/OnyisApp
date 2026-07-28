@@ -258,236 +258,117 @@ export default function Navbar({ balance, setBalance, selectedCurrency = 'ETH', 
   return (
     <>
       <header className="navbar-main-header" style={{
-        padding: '8px 20px',
+        padding: '8px 16px',
         borderBottom: '1px solid var(--border-subtle)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        background: 'rgba(9, 10, 12, 0.85)',
+        background: 'rgba(9, 10, 12, 0.92)',
         backdropFilter: 'blur(12px)',
         position: 'sticky',
         top: 0,
         zIndex: 100
       }}>
-        {/* Brand Logo - Official htmlonyis.png */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <img
-            src="/htmlonyis.png"
-            alt="ONYIS Logo"
-            style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: '8px',
-              objectFit: 'cover',
-              boxShadow: 'var(--shadow-gold)'
-            }}
-          />
-          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <h1 className="gold-gradient-text" style={{
-              fontFamily: 'var(--font-heading)',
-              fontSize: '1.2rem',
-              fontWeight: 700,
-              letterSpacing: '2px',
-              lineHeight: 1,
-              marginBottom: '2px'
-            }}>
-              ONYIS
-            </h1>
-            <span style={{
-              fontSize: '0.5rem',
-              fontWeight: 800,
-              padding: '1px 4px',
-              borderRadius: '3px',
-              background: 'rgba(212, 175, 55, 0.15)',
-              border: '1px solid var(--border-gold)',
-              color: 'var(--text-gold)',
-              letterSpacing: '1px',
-              lineHeight: 1,
-              width: 'fit-content',
-              boxShadow: '0 0 6px rgba(212, 175, 55, 0.2)'
-            }}>
-              BETA
-            </span>
-          </div>
-        </div>
-
-        {/* Navigation & Action Bar: All Controls Grouped into One Unified Bar */}
-        <div className="navbar-controls desktop-navbar-pill" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          
-          {/* Session P&L Tracker Pill (Compact Single-Line) */}
-          <div style={{
-            fontSize: '0.68rem',
-            fontWeight: 700,
-            padding: '3px 7px',
-            borderRadius: '10px',
-            background: netPnl >= 0 ? 'rgba(46, 189, 133, 0.1)' : 'rgba(255, 84, 0, 0.1)',
-            border: netPnl >= 0 ? '1px solid rgba(46, 189, 133, 0.3)' : '1px solid rgba(255, 84, 0, 0.3)',
-            color: netPnl >= 0 ? '#2EBD85' : '#FF5400',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '3px',
-            whiteSpace: 'nowrap'
-          }}>
-            <TrendingUp size={11} color={netPnl >= 0 ? '#2EBD85' : '#FF5400'} />
-            <span>P&L: {netPnl >= 0 ? '+' : ''}{formattedPnl} {selectedCurrency}</span>
-          </div>
-
-          {/* Info & Docs Grouped Segmented Control */}
-          <div className="hide-on-mobile" style={{
-            display: 'flex',
-            alignItems: 'center',
-            background: 'rgba(212, 175, 55, 0.06)',
-            border: '1px solid var(--border-gold)',
-            borderRadius: '8px',
-            padding: '2px',
-            gap: '2px'
-          }}>
-            <button
-              onClick={onOpenFAQ}
+        <div style={{
+          maxWidth: '1240px',
+          margin: '0 auto',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '8px'
+        }}>
+          {/* Brand Logo - Official htmlonyis.png */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <img
+              src="/htmlonyis.png"
+              alt="ONYIS Logo"
               style={{
-                background: 'transparent',
-                border: 'none',
-                padding: '4px 8px',
-                borderRadius: '5px',
-                color: 'var(--text-gold)',
-                fontSize: '0.74rem',
-                fontWeight: 600,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                cursor: 'pointer'
-              }}
-            >
-              <HelpCircle size={13} color="var(--accent-gold)" />
-              FAQ
-            </button>
-
-            <div style={{ width: '1px', height: '12px', background: 'rgba(212, 175, 55, 0.25)' }} />
-
-            <button
-              onClick={onOpenFairness}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                padding: '4px 8px',
-                borderRadius: '5px',
-                color: 'var(--text-gold)',
-                fontSize: '0.74rem',
-                fontWeight: 600,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                cursor: 'pointer'
-              }}
-            >
-              <Scale size={13} color="var(--accent-gold)" />
-              Fairness
-            </button>
-
-            {onOpenDocs && (
-              <>
-                <div style={{ width: '1px', height: '12px', background: 'rgba(212, 175, 55, 0.25)' }} />
-                <button
-                  onClick={onOpenDocs}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    padding: '4px 8px',
-                    borderRadius: '5px',
-                    color: 'var(--text-gold)',
-                    fontSize: '0.74rem',
-                    fontWeight: 600,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <BookOpen size={13} color="var(--accent-gold)" />
-                  Docs
-                </button>
-              </>
-            )}
-          </div>
-
-          {/* Network Badge (Fixed to Robinhood Chain) */}
-          <div className="hide-on-mobile" style={{ position: 'relative' }}>
-            <button
-              onClick={() => setShowNetworkDropdown(!showNetworkDropdown)}
-              style={{
-                background: 'var(--bg-card)',
-                border: '1px solid rgba(46, 189, 133, 0.4)',
-                padding: '4px 10px',
+                width: '30px',
+                height: '30px',
                 borderRadius: '8px',
-                color: 'var(--text-primary)',
-                fontSize: '0.76rem',
-                fontWeight: 600,
+                objectFit: 'cover',
+                boxShadow: 'var(--shadow-gold)'
+              }}
+            />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <h1 className="gold-gradient-text" style={{
+                fontFamily: 'var(--font-heading)',
+                fontSize: '1.15rem',
+                fontWeight: 700,
+                letterSpacing: '1.5px',
+                lineHeight: 1,
+                margin: 0
+              }}>
+                ONYIS
+              </h1>
+              <span style={{
+                fontSize: '0.5rem',
+                fontWeight: 800,
+                padding: '1px 4px',
+                borderRadius: '3px',
+                background: 'rgba(212, 175, 55, 0.15)',
+                border: '1px solid var(--border-gold)',
+                color: 'var(--text-gold)',
+                letterSpacing: '1px',
+                lineHeight: 1
+              }}>
+                BETA
+              </span>
+            </div>
+          </div>
+
+          {/* Controls Group */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+            {/* Session P&L Tracker Pill */}
+            <div className="hide-on-mobile" style={{
+              fontSize: '0.68rem',
+              fontWeight: 700,
+              padding: '3px 7px',
+              borderRadius: '10px',
+              background: netPnl >= 0 ? 'rgba(46, 189, 133, 0.1)' : 'rgba(255, 84, 0, 0.1)',
+              border: netPnl >= 0 ? '1px solid rgba(46, 189, 133, 0.3)' : '1px solid rgba(255, 84, 0, 0.3)',
+              color: netPnl >= 0 ? '#2EBD85' : '#FF5400',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '3px'
+            }}>
+              <TrendingUp size={11} color={netPnl >= 0 ? '#2EBD85' : '#FF5400'} />
+              <span>P&L: {netPnl >= 0 ? '+' : ''}{formattedPnl}</span>
+            </div>
+
+            {/* Level & XP Progress Badge */}
+            <button
+              onClick={onOpenXP}
+              style={{
+                background: 'rgba(212, 175, 55, 0.08)',
+                border: '1px solid rgba(212, 175, 55, 0.25)',
+                padding: '4px 10px',
+                borderRadius: '12px',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
                 cursor: 'pointer'
               }}
             >
-              <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#2EBD85', display: 'inline-block', boxShadow: '0 0 6px #2EBD85' }}></span>
-              Robinhood Chain
-              <ChevronDown size={14} color="var(--text-muted)" />
+              <Shield size={14} color="var(--accent-gold)" />
+              <span style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                Lvl {level} <span className="hide-on-mobile" style={{ color: 'var(--text-gold)' }}>· {getRankTitle(level)}</span>
+              </span>
             </button>
 
-            {showNetworkDropdown && (
-              <div className="glass-panel modal-content" style={{
-                position: 'absolute',
-                top: '120%',
-                right: 0,
-                width: '190px',
-                padding: '6px',
-                boxShadow: 'var(--shadow-card)',
-                zIndex: 110
-              }}>
-                <div
-                  style={{
-                    padding: '8px 12px',
-                    fontSize: '0.8rem',
-                    color: 'var(--text-gold)',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    background: 'rgba(212, 175, 55, 0.08)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between'
-                  }}
-                >
-                  Robinhood Chain
-                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent-gold)' }}></span>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* PRIVY INTEGRATED CONTROL BAR (Minimizable) */}
-          {isPillMinimized ? (
+            {/* Vault Balance Display & Currency Switcher */}
             <div style={{
-              background: 'var(--bg-card)',
-              border: '1px solid var(--border-gold)',
-              borderRadius: '24px',
-              padding: '6px 12px',
               display: 'flex',
               alignItems: 'center',
-              gap: '12px',
-              boxShadow: '0 4px 14px rgba(0,0,0,0.5)',
-              transition: 'all 0.25s ease'
+              gap: '6px',
+              background: 'var(--bg-secondary)',
+              padding: '3px 8px',
+              borderRadius: '12px',
+              border: '1px solid var(--border-subtle)'
             }}>
-              {/* Balance Display */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>RH Vault:</span>
-                <span style={{ fontSize: '0.92rem', fontWeight: 800, color: 'var(--text-gold)', fontFamily: 'var(--font-heading)' }}>
-                  {safeBalance.toFixed(selectedCurrency === 'USDG' ? 2 : 4)}{' '}
-                  <span style={{ fontSize: '0.72rem', color: 'var(--text-primary)' }}>{selectedCurrency}</span>
-                </span>
-              </div>
-
-              {/* Quick Currency Switcher */}
+              <span style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--text-gold)', fontFamily: 'monospace' }}>
+                {safeBalance.toFixed(selectedCurrency === 'USDG' ? 2 : 4)}
+              </span>
               {setSelectedCurrency && (
-                <div style={{ display: 'flex', gap: '2px', background: 'var(--bg-secondary)', padding: '2px', borderRadius: '12px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ display: 'flex', gap: '2px', background: 'rgba(0,0,0,0.4)', padding: '2px', borderRadius: '8px' }}>
                   {['ETH', 'USDG'].map(curr => (
                     <button
                       key={curr}
@@ -496,12 +377,11 @@ export default function Navbar({ balance, setBalance, selectedCurrency = 'ETH', 
                         background: selectedCurrency === curr ? 'var(--accent-gold-gradient)' : 'transparent',
                         color: selectedCurrency === curr ? '#000' : 'var(--text-muted)',
                         border: 'none',
-                        borderRadius: '10px',
-                        padding: '2px 8px',
-                        fontSize: '0.65rem',
+                        borderRadius: '6px',
+                        padding: '2px 6px',
+                        fontSize: '0.62rem',
                         fontWeight: 800,
-                        cursor: 'pointer',
-                        transition: 'all 0.15s'
+                        cursor: 'pointer'
                       }}
                     >
                       {curr}
@@ -509,407 +389,98 @@ export default function Navbar({ balance, setBalance, selectedCurrency = 'ETH', 
                   ))}
                 </div>
               )}
-
-              {/* Expand Bar Button */}
-              <button
-                onClick={() => setIsPillMinimized(false)}
-                title="Expand full controls"
-                style={{
-                  background: 'rgba(212, 175, 55, 0.12)',
-                  border: '1px solid var(--border-gold)',
-                  borderRadius: '50%',
-                  width: '26px',
-                  height: '26px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'var(--text-gold)',
-                  cursor: 'pointer',
-                  transition: 'var(--transition-smooth)'
-                }}
-              >
-                <Maximize2 size={13} />
-              </button>
             </div>
-          ) : (
-            <div style={{
-              background: 'var(--bg-card)',
-              border: '1px solid var(--border-gold)',
-              borderRadius: '24px',
-              padding: '4px 6px 4px 8px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              boxShadow: '0 4px 14px rgba(0,0,0,0.5)',
-              transition: 'all 0.25s ease'
-            }}>
-              {/* Level & XP Segment */}
-              <button
-                onClick={onOpenXP}
-                style={{
-                  background: 'rgba(212, 175, 55, 0.08)',
-                  border: '1px solid rgba(212, 175, 55, 0.25)',
-                  padding: '4px 10px',
-                  borderRadius: '16px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  cursor: 'pointer',
-                  transition: 'var(--transition-smooth)'
-                }}
-              >
-                <ChevronLeft size={13} color="var(--text-muted)" />
-                <Shield size={15} color="var(--accent-gold)" />
-                <div style={{ textAlign: 'left' }}>
-                  <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1 }}>
-                    Lvl {level} • <span style={{ color: 'var(--text-gold)' }}>{getRankTitle(level)}</span>
-                  </div>
-                  <div style={{
-                    width: '54px',
-                    height: '3px',
-                    background: 'var(--bg-secondary)',
-                    borderRadius: '2px',
-                    marginTop: '3px',
-                    overflow: 'hidden'
-                  }}>
-                    <div style={{
-                      width: `${progressPercent}%`,
-                      height: '100%',
-                      background: 'var(--accent-gold-gradient)'
-                    }} />
-                  </div>
-                </div>
-                <ChevronRight size={13} color="var(--text-muted)" />
-              </button>
 
-              {/* Separator Divider */}
-              <div style={{ width: '1px', height: '24px', background: 'var(--border-subtle)' }} />
-
-              {/* Balance & Currency Selector Segment */}
-              <div style={{
-                padding: '4px 10px',
-                textAlign: 'right',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}>
-                <div>
-                  <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', lineHeight: 1, marginBottom: '2px' }}>RH Vault</div>
-                  <div style={{ fontSize: '0.86rem', fontWeight: 700, color: 'var(--text-gold)', lineHeight: 1 }}>
-                    {safeBalance.toFixed(selectedCurrency === 'USDG' ? 2 : 4)}{' '}
-                    <span style={{ fontSize: '0.68rem', color: 'var(--text-secondary)' }}>
-                      {selectedCurrency}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Currency Switcher Dropdown */}
-                {setSelectedCurrency && (
-                  <div style={{ display: 'flex', gap: '2px', background: 'var(--bg-secondary)', padding: '2px', borderRadius: '12px', border: '1px solid var(--border-subtle)' }}>
-                    {['ETH', 'USDG'].map(curr => (
-                      <button
-                        key={curr}
-                        onClick={() => setSelectedCurrency(curr)}
-                        style={{
-                          background: selectedCurrency === curr ? 'var(--accent-gold-gradient)' : 'transparent',
-                          color: selectedCurrency === curr ? '#000' : 'var(--text-muted)',
-                          border: 'none',
-                          borderRadius: '10px',
-                          padding: '3px 10px',
-                          fontSize: '0.68rem',
-                          fontWeight: 800,
-                          cursor: 'pointer',
-                          transition: 'all 0.15s'
-                        }}
-                      >
-                        {curr}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Deposit Segment */}
-              <button
-                onClick={() => setShowDepositModal(true)}
-                style={{
-                  padding: '6px 12px',
-                  fontSize: '0.78rem',
-                  fontWeight: 600,
-                  borderRadius: '16px',
-                  background: 'rgba(46, 189, 133, 0.14)',
-                  border: '1px solid rgba(46, 189, 133, 0.35)',
-                  color: 'var(--status-success)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  cursor: 'pointer',
-                  transition: 'var(--transition-smooth)'
-                }}
-              >
-                <ArrowDownRight size={13} /> Deposit
-              </button>
-
-              {/* Withdraw Segment */}
-              <button
-                onClick={() => setShowWithdrawModal(true)}
-                style={{
-                  padding: '6px 12px',
-                  fontSize: '0.78rem',
-                  fontWeight: 600,
-                  borderRadius: '16px',
-                  background: 'rgba(255, 255, 255, 0.04)',
-                  border: '1px solid var(--border-subtle)',
-                  color: 'var(--text-primary)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  cursor: 'pointer',
-                  transition: 'var(--transition-smooth)'
-                }}
-              >
-                <ArrowUpRight size={13} /> Withdraw
-              </button>
-
-              {/* Profile / Connect Segment */}
-              {isWalletConnected ? (
-                <>
-                  <button
-                    onClick={() => { setTempUsername(username); setShowUsernameModal(true); }}
-                    style={{
-                      padding: '6px 12px',
-                      fontSize: '0.78rem',
-                      fontWeight: 600,
-                      borderRadius: '16px',
-                      background: 'rgba(212, 175, 55, 0.12)',
-                      border: '1px solid var(--border-gold)',
-                      color: 'var(--text-gold)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '5px',
-                      cursor: 'pointer',
-                      transition: 'var(--transition-smooth)'
-                    }}
-                  >
-                    <User size={13} color="var(--accent-gold)" />
-                    {walletAddress}
-                  </button>
-
-                  {/* Disconnect Button */}
-                  <button
-                    onClick={logout}
-                    title="Disconnect Wallet"
-                    style={{
-                      background: 'transparent',
-                      border: 'none',
-                      color: 'var(--status-danger)',
-                      cursor: 'pointer',
-                      padding: '4px 6px',
-                      display: 'flex',
-                      alignItems: 'center'
-                    }}
-                  >
-                    <LogOut size={14} />
-                  </button>
-                </>
-              ) : (
-                <button
-                  className="gold-button"
-                  onClick={() => login()}
-                  style={{ padding: '6px 14px', borderRadius: '16px', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '6px' }}
-                >
-                  <Wallet size={14} /> Connect
-                </button>
-              )}
-
-              {/* Minimize Bar Button */}
-              <button
-                onClick={() => setIsPillMinimized(true)}
-                title="Minimize Control Bar"
-                style={{
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: '50%',
-                  width: '24px',
-                  height: '24px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'var(--text-muted)',
-                  cursor: 'pointer',
-                  marginLeft: '2px',
-                  transition: 'var(--transition-smooth)'
-                }}
-              >
-                <Minimize2 size={12} />
-              </button>
-            </div>
-          )}
-
-          {/* Global Sound Mute/Unmute Toggle Button (Far Right Corner) */}
-          {onToggleSound && (
+            {/* Deposit Action */}
             <button
-              onClick={onToggleSound}
-              title={soundMuted ? "Unmute All Audio SFX" : "Mute All Audio SFX"}
+              onClick={() => setShowDepositModal(true)}
               style={{
-                background: 'rgba(212, 175, 55, 0.08)',
-                border: '1px solid var(--border-gold)',
-                width: '34px',
-                height: '34px',
-                borderRadius: '50%',
-                color: 'var(--text-gold)',
+                padding: '5px 10px',
+                fontSize: '0.74rem',
+                fontWeight: 700,
+                borderRadius: '12px',
+                background: 'rgba(46, 189, 133, 0.18)',
+                border: '1px solid rgba(46, 189, 133, 0.4)',
+                color: 'var(--status-success)',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                transition: 'var(--transition-smooth)',
-                flexShrink: 0
-              }}
-            >
-              {soundMuted ? <VolumeX size={15} color="#FF5400" /> : <Volume2 size={15} color="var(--accent-gold)" />}
-            </button>
-          )}
-        </div>
-
-        {/* Dedicated Mobile Header Bar (Ultra-Precise & Compact 2-Row Layout) */}
-        <div className="mobile-navbar-bar" style={{ display: 'none' }}>
-          {/* Mobile Row 1: Logo & Vault Balance Actions */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: '6px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <img src="/htmlonyis.png" alt="ONYIS Logo" style={{ width: '26px', height: '26px', borderRadius: '6px' }} />
-              <span className="gold-gradient-text" style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '1.05rem', letterSpacing: '1px' }}>
-                ONYIS
-              </span>
-              <span style={{ fontSize: '0.45rem', fontWeight: 800, padding: '1px 3px', borderRadius: '3px', background: 'rgba(212, 175, 55, 0.15)', border: '1px solid var(--border-gold)', color: 'var(--text-gold)' }}>
-                BETA
-              </span>
-            </div>
-
-            {/* Mobile Actions */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              {/* Vault Balance Display */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--bg-secondary)', padding: '3px 7px', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
-                <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-gold)', fontFamily: 'monospace' }}>
-                  {safeBalance.toFixed(selectedCurrency === 'USDG' ? 2 : 4)}
-                </span>
-                {setSelectedCurrency && (
-                  <div style={{ display: 'flex', gap: '1px', background: 'rgba(0,0,0,0.4)', padding: '1px', borderRadius: '6px' }}>
-                    {['ETH', 'USDG'].map(curr => (
-                      <button
-                        key={curr}
-                        onClick={() => setSelectedCurrency(curr)}
-                        style={{
-                          background: selectedCurrency === curr ? 'var(--accent-gold-gradient)' : 'transparent',
-                          color: selectedCurrency === curr ? '#000' : 'var(--text-muted)',
-                          border: 'none',
-                          borderRadius: '4px',
-                          padding: '1px 4px',
-                          fontSize: '0.6rem',
-                          fontWeight: 800,
-                          cursor: 'pointer'
-                        }}
-                      >
-                        {curr}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Deposit */}
-              <button
-                onClick={() => setShowDepositModal(true)}
-                style={{
-                  padding: '4px 8px',
-                  fontSize: '0.7rem',
-                  fontWeight: 700,
-                  borderRadius: '10px',
-                  background: 'rgba(46, 189, 133, 0.18)',
-                  border: '1px solid rgba(46, 189, 133, 0.4)',
-                  color: 'var(--status-success)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '2px',
-                  cursor: 'pointer'
-                }}
-              >
-                <ArrowDownRight size={11} /> Deposit
-              </button>
-
-              {/* Withdraw */}
-              <button
-                onClick={() => setShowWithdrawModal(true)}
-                style={{
-                  padding: '4px 8px',
-                  fontSize: '0.7rem',
-                  fontWeight: 700,
-                  borderRadius: '10px',
-                  background: 'rgba(255, 255, 255, 0.06)',
-                  border: '1px solid var(--border-subtle)',
-                  color: 'var(--text-primary)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '2px',
-                  cursor: 'pointer'
-                }}
-              >
-                <ArrowUpRight size={11} /> Withdraw
-              </button>
-            </div>
-          </div>
-
-          {/* Mobile Row 2: Level Progress, P&L, Mute Toggle */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: '6px', marginTop: '6px' }}>
-            <button
-              onClick={onOpenXP}
-              style={{
-                background: 'rgba(212, 175, 55, 0.08)',
-                border: '1px solid rgba(212, 175, 55, 0.25)',
-                padding: '3px 8px',
-                borderRadius: '10px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '5px',
+                gap: '3px',
                 cursor: 'pointer'
               }}
             >
-              <Shield size={12} color="var(--accent-gold)" />
-              <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                Lvl {level} · <span style={{ color: 'var(--text-gold)' }}>{getRankTitle(level)}</span>
-              </span>
+              <ArrowDownRight size={12} /> <span className="hide-on-mobile">Deposit</span>
             </button>
 
-            <div style={{
-              fontSize: '0.65rem',
-              fontWeight: 700,
-              padding: '2px 6px',
-              borderRadius: '8px',
-              background: netPnl >= 0 ? 'rgba(46, 189, 133, 0.1)' : 'rgba(255, 84, 0, 0.1)',
-              border: netPnl >= 0 ? '1px solid rgba(46, 189, 133, 0.3)' : '1px solid rgba(255, 84, 0, 0.3)',
-              color: netPnl >= 0 ? '#2EBD85' : '#FF5400',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '3px'
-            }}>
-              <TrendingUp size={10} color={netPnl >= 0 ? '#2EBD85' : '#FF5400'} />
-              <span>P&L: {netPnl >= 0 ? '+' : ''}{formattedPnl}</span>
-            </div>
+            {/* Withdraw Action */}
+            <button
+              onClick={() => setShowWithdrawModal(true)}
+              style={{
+                padding: '5px 10px',
+                fontSize: '0.74rem',
+                fontWeight: 700,
+                borderRadius: '12px',
+                background: 'rgba(255, 255, 255, 0.06)',
+                border: '1px solid var(--border-subtle)',
+                color: 'var(--text-primary)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '3px',
+                cursor: 'pointer'
+              }}
+            >
+              <ArrowUpRight size={12} /> <span className="hide-on-mobile">Withdraw</span>
+            </button>
 
+            {/* Profile / Wallet Connect */}
+            {isWalletConnected ? (
+              <button
+                onClick={() => { setTempUsername(username); setShowUsernameModal(true); }}
+                style={{
+                  padding: '5px 9px',
+                  fontSize: '0.74rem',
+                  fontWeight: 700,
+                  borderRadius: '12px',
+                  background: 'rgba(212, 175, 55, 0.12)',
+                  border: '1px solid var(--border-gold)',
+                  color: 'var(--text-gold)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                <User size={13} color="var(--accent-gold)" />
+                <span className="hide-on-mobile">{walletAddress}</span>
+              </button>
+            ) : (
+              <button
+                className="gold-button"
+                onClick={() => login()}
+                style={{ padding: '5px 12px', borderRadius: '12px', fontSize: '0.76rem', display: 'flex', alignItems: 'center', gap: '4px' }}
+              >
+                <Wallet size={13} /> Connect
+              </button>
+            )}
+
+            {/* Audio Toggle */}
             {onToggleSound && (
               <button
                 onClick={onToggleSound}
+                title={soundMuted ? "Unmute Audio" : "Mute Audio"}
                 style={{
                   background: 'rgba(212, 175, 55, 0.08)',
                   border: '1px solid var(--border-gold)',
-                  borderRadius: '8px',
-                  padding: '3px 6px',
-                  color: soundMuted ? 'var(--status-danger)' : 'var(--accent-gold)',
-                  cursor: 'pointer',
+                  borderRadius: '50%',
+                  width: '28px',
+                  height: '28px',
                   display: 'flex',
-                  alignItems: 'center'
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: soundMuted ? 'var(--status-danger)' : 'var(--accent-gold)',
+                  cursor: 'pointer'
                 }}
               >
-                {soundMuted ? <VolumeX size={12} /> : <Volume2 size={12} />}
+                {soundMuted ? <VolumeX size={13} /> : <Volume2 size={13} />}
               </button>
             )}
           </div>

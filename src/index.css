@@ -310,24 +310,9 @@ html, body {
 }
 
 /* GAME SELECTOR & NAVBAR MOBILE RESPONSIVE FIXES */
-.mobile-navbar-bar {
-  display: none !important;
-}
-
 @media (max-width: 768px) {
-  .desktop-navbar-pill {
-    display: none !important;
-  }
-
-  .mobile-navbar-bar {
-    display: flex !important;
-    flex-direction: column !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-  }
-
   .navbar-main-header {
-    padding: 10px 12px !important;
+    padding: 8px 12px !important;
   }
 
   .game-selector-grid {
