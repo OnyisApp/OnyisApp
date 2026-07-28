@@ -19,6 +19,8 @@ import { Scale, ShieldCheck, BookOpen, FileText, Share2, Copy, CheckCheck } from
 import { soundEngine } from './utils/soundEngine';
 import { supabase } from './lib/supabase';
 
+import { generateRandomBotPlayer } from './utils/botGenerator';
+
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   // Multi-Token Balances State (ETH, USDG)
@@ -206,7 +208,7 @@ export default function App() {
     };
 
     const fireBotActivity = () => {
-      const bot = BOT_NAMES[Math.floor(Math.random() * BOT_NAMES.length)];
+      const bot = generateRandomBotPlayer();
       const game = GAMES[Math.floor(Math.random() * GAMES.length)];
       let outcome;
       if (game === 'FLIPO') outcome = flipioOutcome();

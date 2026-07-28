@@ -10,6 +10,8 @@ const MOCK_NAMES = [
   '0xAlpha_G', 'Diamond_Handz', 'GigaChad_Eth', 'PumpMaster', 'LamboSoon'
 ];
 
+import { generateRandomBotPlayer } from '../utils/botGenerator';
+
 export default function ChartGame({ balance, setBalance, isConnected, addLiveActivity, username, selectedCurrency = 'ETH' }) {
   const symbol = selectedCurrency;
   const defaultWager = selectedCurrency === 'USDG' ? '50.00' : '0.05';
@@ -146,19 +148,21 @@ export default function ChartGame({ balance, setBalance, isConnected, addLiveAct
   };
 
   // Generate initial random lobby of players joining per round
-  const generateInitialLobby = (userBetObj = null) => {
-    const randomCount = Math.floor(Math.random() * 6) + 3; // 3 to 8 bot players join initially
-    const shuffled = [...MOCK_NAMES].sort(() => 0.5 - Math.random()).slice(0, randomCount);
-    
-    const botList = shuffled.map((name, idx) => ({
-      id: Date.now() + idx,
-      name,
-      bet: `${selectedCurrency === 'USDG' ? (10 + Math.random() * 150).toFixed(2) : (0.01 + Math.random() * 0.35).toFixed(3)} ${symbol}`,
-      wagerNum: +(selectedCurrency === 'USDG' ? (10 + Math.random() * 150).toFixed(2) : (0.01 + Math.random() * 0.35).toFixed(3)),
-      cashedOut: false,
-      mult: null,
-      isUser: false
-    }));
+  const generateLobbyBots = (userBetObj = null) => {
+    const randomCount = Math.floor(Math.random() * 6) + 4; // 4 to 9 bot players join each round
+    const botList = Array.from({ length: randomCount }, (_, idx) => {
+      const name = generateRandomBotPlayer();
+      const wagerVal = selectedCurrency === 'USDG' ? +(10 + Math.random() * 150).toFixed(2) : +(0.01 + Math.random() * 0.35).toFixed(3);
+      return {
+        id: Date.now() + idx + Math.random(),
+        name,
+        bet: `${wagerVal} ${symbol}`,
+        wagerNum: wagerVal,
+        cashedOut: false,
+        mult: null,
+        isUser: false
+      };
+    });
 
     if (userBetObj) {
       return [userBetObj, ...botList];
@@ -195,7 +199,7 @@ export default function ChartGame({ balance, setBalance, isConnected, addLiveAct
         };
       }
 
-      setLobbyBots(generateInitialLobby(activeUserObj));
+      setLobbyBots(generateLobbyBots(activeUserObj));
 
       timer = setInterval(() => {
         setCountdown(prev => {
