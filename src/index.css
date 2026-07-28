@@ -309,10 +309,55 @@ html, body {
   }
 }
 
-/* GAME SELECTOR & NAVBAR MOBILE RESPONSIVE FIXES */
+/* THREE-POINT MOBILE PRECISION OVERRIDES (RED, GREEN, BLUE CIRCLE FIXES) */
+
+.badge-mobile {
+  display: none;
+}
+
 @media (max-width: 768px) {
+  /* 1. RED CIRCLE FIX: Navbar single logo on left + Touch horizontal scrollable controls on right */
   .navbar-main-header {
     padding: 8px 12px !important;
+    flex-wrap: nowrap !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+  }
+
+  .navbar-main-header > div:nth-child(2) {
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    -webkit-overflow-scrolling: touch !important;
+    max-width: calc(100vw - 120px) !important;
+    padding-bottom: 2px !important;
+    flex-wrap: nowrap !important;
+  }
+
+  .navbar-main-header > div:nth-child(2)::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  /* 2. GREEN CIRCLE FIX: Activity Ticker container padding match */
+  .activity-ticker-wrapper {
+    padding: 0 12px !important;
+    margin: 16px auto 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* 3. BLUE CIRCLE FIX: Short badges fit perfectly without truncation */
+  .badge-desktop {
+    display: none !important;
+  }
+
+  .badge-mobile {
+    display: inline !important;
+    font-size: 0.58rem !important;
+  }
+
+  .game-badge {
+    padding: 3px 6px !important;
+    font-size: 0.58rem !important;
   }
 
   .game-selector-grid {

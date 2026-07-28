@@ -8,28 +8,32 @@ export default function GameSelector({ activeTab, setActiveTab }) {
       name: 'FLIPO',
       subtitle: 'Instant 50/50 PvP Coin Toss',
       icon: Dices,
-      badge: 'PROVABLY FAIR 98% PAYOUT'
+      badge: 'PROVABLY FAIR 98% PAYOUT',
+      shortBadge: '98% PAYOUT'
     },
     {
       id: 'chart',
       name: 'RUGO',
       subtitle: 'Battle Royale Chart Crash',
       icon: TrendingUp,
-      badge: 'LIVE MULTIPLIER • PVP'
+      badge: 'LIVE MULTIPLIER • PVP',
+      shortBadge: 'PVP CRASH'
     },
     {
       id: 'plinko',
       name: 'BOLO',
       subtitle: 'Stake-Style Multi-Risk Drop',
       icon: CircleDot,
-      badge: 'UP TO 1,000X MULTIPLIER'
+      badge: 'UP TO 1,000X MULTIPLIER',
+      shortBadge: 'UP TO 1,000X'
     },
     {
       id: 'stake',
       name: 'STAKE',
       subtitle: 'Lock $ONYIS · Earn ETH Rewards',
       icon: Lock,
-      badge: 'UP TO 3.0X MULTIPLIER'
+      badge: 'UP TO 3.0X MULTIPLIER',
+      shortBadge: 'UP TO 3.0X'
     }
   ];
 
@@ -81,14 +85,14 @@ export default function GameSelector({ activeTab, setActiveTab }) {
             <div style={{
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'flex-start',
+              justifyContent: 'space-between',
               marginBottom: '14px',
-              gap: '10px'
+              gap: '6px'
             }}>
               {/* Icon Box */}
               <div style={{
-                width: '40px',
-                height: '40px',
+                width: '36px',
+                height: '36px',
                 borderRadius: '10px',
                 flexShrink: 0,
                 background: isActive ? 'rgba(212, 175, 55, 0.15)' : 'var(--bg-secondary)',
@@ -98,11 +102,11 @@ export default function GameSelector({ activeTab, setActiveTab }) {
                 justifyContent: 'center',
                 transition: 'var(--transition-smooth)'
               }}>
-                <Icon size={20} color={isActive ? 'var(--accent-gold)' : 'var(--text-secondary)'} />
+                <Icon size={18} color={isActive ? 'var(--accent-gold)' : 'var(--text-secondary)'} />
               </div>
 
               {/* Badge */}
-              <span style={{
+              <span className="game-badge" style={{
                 fontSize: '0.62rem',
                 fontWeight: 700,
                 letterSpacing: '0.5px',
@@ -114,7 +118,8 @@ export default function GameSelector({ activeTab, setActiveTab }) {
                 display: 'inline-block',
                 whiteSpace: 'nowrap'
               }}>
-                {g.badge}
+                <span className="badge-desktop">{g.badge}</span>
+                <span className="badge-mobile">{g.shortBadge}</span>
               </span>
             </div>
 

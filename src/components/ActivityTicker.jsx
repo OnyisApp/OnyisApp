@@ -4,7 +4,7 @@ import { Activity } from 'lucide-react';
 export default function ActivityTicker({ activities }) {
 
   return (
-    <div style={{
+    <div className="activity-ticker-wrapper" style={{
       maxWidth: '1200px',
       margin: '24px auto 0',
       padding: '0 24px'
