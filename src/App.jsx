@@ -343,7 +343,7 @@ export default function App() {
           <PlinkoGame balance={balance} setBalance={setBalance} isConnected={isConnected} addLiveActivity={addLiveActivity} username={username} selectedCurrency={selectedCurrency} />
         </div>
         <div className="page-transition" style={{ display: activeTab === 'stake' ? 'block' : 'none' }}>
-          <StakingPage username={username} triggerToast={triggerToast} />
+          <StakingPage username={username} triggerToast={triggerToast} isConnected={isConnected} />
         </div>
       </main>
 

@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Lock, Unlock, TrendingUp, Coins, Clock, Zap, ChevronRight, AlertTriangle, CheckCircle2, X, Info, Gamepad2, BarChart3, ShieldCheck, Copy, CheckCheck } from 'lucide-react';
 import ToastModal from './ToastModal';
 import { supabase } from '../lib/supabase';
+import { usePrivy, useWallets } from '@privy-io/react-auth';
+import { generateRandomBotPlayer } from '../utils/botGenerator';
 
 const STAKING_VAULT_ADDRESS = '0xEE29A5dC23eC52542B7Ac1dAeFff1458320D73FD';
 
@@ -15,8 +17,8 @@ const LOCK_OPTIONS = [
 
 const MIN_STAKE = 100_000;
 
-// Mock staker feed
-const MOCK_STAKERS = [
+// Fallback bot staker feed (shown when Supabase has no data yet)
+const BOT_STAKERS_BASE = [
   { addr: '0x7a...99f1', amount: '2,500,000', lock: '90 Days', mult: '3.0x', joined: '2h ago' },
   { addr: '0x3c...22a4', amount: '500,000',   lock: '30 Days', mult: '1.75x', joined: '5h ago' },
   { addr: '0xe1...4f09', amount: '1,000,000', lock: '60 Days', mult: '2.25x', joined: '12h ago' },
@@ -24,21 +26,139 @@ const MOCK_STAKERS = [
   { addr: '0xAa...F302', amount: '750,000',   lock: '14 Days', mult: '1.3x', joined: '2d ago' },
 ];
 
-export default function StakingPage({ username, triggerToast }) {
+export default function StakingPage({ username, triggerToast, isConnected }) {
   const [stakeAmount, setStakeAmount] = useState('100000');
-  const [selectedLock, setSelectedLock] = useState(LOCK_OPTIONS[2]); // default 30 days
+  const [selectedLock, setSelectedLock] = useState(LOCK_OPTIONS[2]);
   const [activeStakes, setActiveStakes] = useState([]);
+  const [liveStakers, setLiveStakers] = useState(BOT_STAKERS_BASE);
   const [toast, setToast] = useState({ isOpen: false, title: '', message: '', type: 'error' });
-  const [showEarlyUnstakeWarning, setShowEarlyUnstakeWarning] = useState(null); // stake id
-  const [totalStaked, setTotalStaked] = useState(12_450_000);
-  const [ethPool, setEthPool] = useState(0.8421);
+  const [showEarlyUnstakeWarning, setShowEarlyUnstakeWarning] = useState(null);
+  const [totalStaked, setTotalStaked] = useState(13_930_000);
+  const [ethPool, setEthPool] = useState(0.8996);
   const [stakersCount, setStakersCount] = useState(247);
+  const [isLoading, setIsLoading] = useState(false);
+  const botStakerTimer = useRef(null);
 
-  // Simulate pool growing
+  // Get wallet address from Privy
+  let walletAddress = null;
+  try {
+    const { user, authenticated } = usePrivy();
+    const { wallets } = useWallets();
+    if (authenticated && user?.wallet?.address) {
+      walletAddress = user.wallet.address;
+    } else if (wallets?.[0]?.address) {
+      walletAddress = wallets[0].address;
+    }
+  } catch (e) {}
+
+  const userKey = walletAddress || `@${username}`;
+
+  // ── Load user's existing stakes from Supabase on mount ──
+  useEffect(() => {
+    if (!supabase) return;
+    const loadStakes = async () => {
+      try {
+        setIsLoading(true);
+        const { data, error } = await supabase
+          .from('stake_requests')
+          .select('*')
+          .eq('username', userKey)
+          .in('status', ['ACTIVE', 'UNSTAKE_PENDING', 'EARLY_UNSTAKE_PENDING'])
+          .order('created_at', { ascending: false });
+
+        if (!error && data && data.length > 0) {
+          const mapped = data.map(row => ({
+            id: row.id || row.created_at,
+            amount: row.amount || 0,
+            lockDays: row.lock_days || 30,
+            lockLabel: `${row.lock_days || 30} Days`,
+            multiplier: row.multiplier || 1.0,
+            color: LOCK_OPTIONS.find(o => o.days === row.lock_days)?.color || '#2EBD85',
+            startDate: new Date(row.created_at).getTime(),
+            endDate: new Date(row.created_at).getTime() + (row.lock_days || 30) * 24 * 60 * 60 * 1000,
+            status: row.status || 'ACTIVE',
+            ethReward: row.eth_reward || 0
+          }));
+          setActiveStakes(mapped);
+        }
+      } catch (e) {}
+      finally { setIsLoading(false); }
+    };
+    loadStakes();
+  }, [userKey]);
+
+  // ── Load global staking stats from Supabase ──
+  useEffect(() => {
+    if (!supabase) return;
+    const loadStats = async () => {
+      try {
+        const { data } = await supabase
+          .from('stake_requests')
+          .select('amount, username, lock_days, multiplier, created_at, status')
+          .eq('status', 'ACTIVE')
+          .order('created_at', { ascending: false });
+
+        if (data && data.length > 0) {
+          const realTotal = data.reduce((sum, r) => sum + (r.amount || 0), 0);
+          if (realTotal > 0) setTotalStaked(13_930_000 + realTotal); // base + real
+          setStakersCount(247 + new Set(data.map(r => r.username)).size);
+
+          // Build live staker feed from real data
+          const realStakers = data.slice(0, 8).map(r => {
+            const lockOpt = LOCK_OPTIONS.find(o => o.days === r.lock_days) || LOCK_OPTIONS[2];
+            const ago = Math.floor((Date.now() - new Date(r.created_at).getTime()) / 60000);
+            const timeStr = ago < 60 ? `${ago}m ago` : ago < 1440 ? `${Math.floor(ago / 60)}h ago` : `${Math.floor(ago / 1440)}d ago`;
+            return {
+              addr: r.username.length > 12 ? `${r.username.slice(0, 6)}...${r.username.slice(-4)}` : r.username,
+              amount: (r.amount || 0).toLocaleString(),
+              lock: lockOpt.label,
+              mult: `${r.multiplier || 1}x`,
+              joined: timeStr,
+              color: lockOpt.color
+            };
+          });
+
+          // Merge real + bot stakers, real on top
+          setLiveStakers([...realStakers, ...BOT_STAKERS_BASE].slice(0, 8));
+        }
+      } catch (e) {}
+    };
+    loadStats();
+  }, []);
+
+  // ── Bot staker loop (adds fake stakers every 12-25s to look alive) ──
+  useEffect(() => {
+    const LOCK_LABELS = ['7 Days', '14 Days', '30 Days', '60 Days', '90 Days'];
+    const LOCK_MULTS  = ['1.0x',  '1.3x',   '1.75x',  '2.25x',  '3.0x'];
+    const AMOUNTS = ['100,000', '250,000', '500,000', '750,000', '1,000,000', '2,000,000'];
+
+    const fireBotStaker = () => {
+      const lockIdx = Math.floor(Math.random() * LOCK_LABELS.length);
+      const botEntry = {
+        addr: generateRandomBotPlayer(),
+        amount: AMOUNTS[Math.floor(Math.random() * AMOUNTS.length)],
+        lock: LOCK_LABELS[lockIdx],
+        mult: LOCK_MULTS[lockIdx],
+        joined: 'Just now',
+        color: LOCK_OPTIONS[lockIdx].color
+      };
+
+      setLiveStakers(prev => [botEntry, ...prev.slice(0, 7)]);
+      setTotalStaked(prev => prev + parseInt(botEntry.amount.replace(/,/g, ''), 10));
+      setStakersCount(prev => prev + 1);
+
+      const delay = 12000 + Math.random() * 13000;
+      botStakerTimer.current = setTimeout(fireBotStaker, delay);
+    };
+
+    botStakerTimer.current = setTimeout(fireBotStaker, 6000);
+    return () => clearTimeout(botStakerTimer.current);
+  }, []);
+
+  // ── Pool grows naturally ──
   useEffect(() => {
     const interval = setInterval(() => {
-      setEthPool(prev => +(prev + (Math.random() * 0.0002)).toFixed(4));
-      setTotalStaked(prev => prev + Math.floor(Math.random() * 5000));
+      setEthPool(prev => +(prev + (Math.random() * 0.0003)).toFixed(4));
     }, 8000);
     return () => clearInterval(interval);
   }, []);
@@ -87,17 +207,15 @@ export default function StakingPage({ username, triggerToast }) {
       try {
         await supabase
           .from('stake_requests')
-          .insert([
-            {
-              username: `@${username}`,
-              staking_vault: STAKING_VAULT_ADDRESS,
-              amount: amountNum,
-              lock_days: selectedLock.days,
-              multiplier: selectedLock.multiplier,
-              status: 'ACTIVE',
-              created_at: new Date().toISOString()
-            }
-          ]);
+          .insert([{
+            username: userKey,
+            staking_vault: STAKING_VAULT_ADDRESS,
+            amount: amountNum,
+            lock_days: selectedLock.days,
+            multiplier: selectedLock.multiplier,
+            status: 'ACTIVE',
+            created_at: new Date().toISOString()
+          }]);
       } catch (err) {
         console.warn('Supabase stake queue notice:', err);
       }
@@ -137,21 +255,16 @@ export default function StakingPage({ username, triggerToast }) {
 
     if (supabase && targetStake) {
       try {
+        // Update the existing row status
         await supabase
           .from('stake_requests')
-          .insert([
-            {
-              username: `@${username}`,
-              staking_vault: STAKING_VAULT_ADDRESS,
-              amount: targetStake.amount,
-              lock_days: targetStake.lockDays,
-              multiplier: targetStake.multiplier,
-              status: isEarly ? 'EARLY_UNSTAKE_PENDING' : 'UNSTAKE_PENDING',
-              created_at: new Date().toISOString()
-            }
-          ]);
+          .update({ status: isEarly ? 'EARLY_UNSTAKE_PENDING' : 'UNSTAKE_PENDING' })
+          .eq('username', userKey)
+          .eq('amount', targetStake.amount)
+          .eq('lock_days', targetStake.lockDays)
+          .eq('status', 'ACTIVE');
       } catch (err) {
-        console.warn('Supabase unstake queue notice:', err);
+        console.warn('Supabase unstake update notice:', err);
       }
     }
 
@@ -651,26 +764,27 @@ export default function StakingPage({ username, triggerToast }) {
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                {MOCK_STAKERS.map((s, i) => (
+                {liveStakers.map((s, i) => (
                   <div
-                    key={i}
+                    key={`${s.addr}-${i}`}
                     style={{
                       display: 'grid',
                       gridTemplateColumns: '1fr 1.2fr 0.9fr 0.6fr 0.7fr',
                       gap: '8px',
                       padding: '10px 10px',
-                      background: 'var(--bg-secondary)',
-                      border: '1px solid var(--border-subtle)',
+                      background: s.joined === 'Just now' ? 'rgba(46, 189, 133, 0.05)' : 'var(--bg-secondary)',
+                      border: `1px solid ${s.joined === 'Just now' ? 'rgba(46, 189, 133, 0.25)' : 'var(--border-subtle)'}`,
                       borderRadius: '8px',
                       fontSize: '0.78rem',
-                      alignItems: 'center'
+                      alignItems: 'center',
+                      transition: 'all 0.3s ease'
                     }}
                   >
                     <span style={{ fontFamily: 'monospace', color: 'var(--text-primary)', fontWeight: 600 }}>{s.addr}</span>
                     <span style={{ color: 'var(--text-gold)', fontWeight: 700 }}>{s.amount}</span>
                     <span style={{ color: 'var(--text-secondary)' }}>{s.lock}</span>
-                    <span style={{ color: '#2EBD85', fontWeight: 700 }}>{s.mult}</span>
-                    <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>{s.joined}</span>
+                    <span style={{ color: s.color || '#2EBD85', fontWeight: 700 }}>{s.mult}</span>
+                    <span style={{ color: s.joined === 'Just now' ? '#2EBD85' : 'var(--text-muted)', fontSize: '0.7rem', fontWeight: s.joined === 'Just now' ? 700 : 400 }}>{s.joined}</span>
                   </div>
                 ))}
               </div>
