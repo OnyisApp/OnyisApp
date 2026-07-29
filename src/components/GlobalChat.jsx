@@ -55,13 +55,15 @@ export default function GlobalChat({ username, isConnected, triggerToast }) {
 
   // Subscribe to Unified RealtimeHub chat messages (real user messages from other devices)
   useEffect(() => {
+    const cleanCurrent = (username || '').replace(/^@/, '').toLowerCase();
     const unsubscribe = realtimeHub.onChat((newMsg) => {
       if (!newMsg || !newMsg.id) return;
+      const msgUserClean = (newMsg.user || '').replace(/^@/, '').toLowerCase();
       setMessages(prev => {
         if (prev.some(m => String(m.id) === String(newMsg.id))) return prev;
         return [...prev.slice(-60), {
           ...newMsg,
-          isMe: newMsg.user === `@${username}`
+          isMe: cleanCurrent ? msgUserClean === cleanCurrent : false
         }];
       });
     });

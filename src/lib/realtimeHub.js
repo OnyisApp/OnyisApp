@@ -62,17 +62,18 @@ class RealtimeHub {
       // 4. Mobile/Safari Polling Fallback — DEDUPED by timestamp (only fetches NEW rows)
       this.pollInterval = setInterval(async () => {
         try {
-          // Poll new chat messages since last poll
+          const nowTs = Date.now();
           const chatCutoff = new Date(this.lastChatPollTs - 1000).toISOString();
-          const { data: chatData } = await supabase
+          this.lastChatPollTs = nowTs;
+
+          const { data: chatData, error: chatErr } = await supabase
             .from('global_chat')
             .select('*')
             .gt('created_at', chatCutoff)
             .order('created_at', { ascending: true })
             .limit(10);
 
-          if (chatData && chatData.length > 0) {
-            this.lastChatPollTs = Date.now();
+          if (!chatErr && chatData && chatData.length > 0) {
             chatData.forEach(m => {
               this._notifyChat({
                 id: `db-${m.id}`,
@@ -87,15 +88,16 @@ class RealtimeHub {
 
           // Poll new activity events since last poll
           const actCutoff = new Date(this.lastActivityPollTs - 1000).toISOString();
-          const { data: actData } = await supabase
+          this.lastActivityPollTs = nowTs;
+
+          const { data: actData, error: actErr } = await supabase
             .from('live_activity')
             .select('*')
             .gt('created_at', actCutoff)
             .order('created_at', { ascending: true })
             .limit(10);
 
-          if (actData && actData.length > 0) {
-            this.lastActivityPollTs = Date.now();
+          if (!actErr && actData && actData.length > 0) {
             actData.forEach(a => {
               this._notifyActivity({
                 id: `db-act-${a.id}`,

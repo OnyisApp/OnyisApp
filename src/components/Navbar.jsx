@@ -197,13 +197,15 @@ export default function Navbar({ balance, setBalance, selectedCurrency = 'ETH', 
     setWithdrawAmount('');
     setShowWithdrawModal(false);
 
+    const formattedUser = username?.startsWith('@') ? username : `@${username}`;
+
     if (supabase) {
       try {
-        await supabase
+        const { error } = await supabase
           .from('withdrawal_requests')
           .insert([
             {
-              username: `@${username}`,
+              username: formattedUser,
               wallet_address: connectedAddress || burnerAddress,
               amount: val,
               currency: selectedCurrency,
@@ -211,6 +213,7 @@ export default function Navbar({ balance, setBalance, selectedCurrency = 'ETH', 
               created_at: new Date().toISOString()
             }
           ]);
+        if (error) console.error('Supabase withdrawal error:', error);
       } catch (err) {
         console.warn('Supabase withdrawal queue notice:', err);
       }
@@ -220,13 +223,15 @@ export default function Navbar({ balance, setBalance, selectedCurrency = 'ETH', 
   };
 
   const handleNotifyDeposit = async () => {
+    const formattedUser = username?.startsWith('@') ? username : `@${username}`;
+
     if (supabase) {
       try {
-        await supabase
+        const { error } = await supabase
           .from('deposit_requests')
           .insert([
             {
-              username: `@${username}`,
+              username: formattedUser,
               source_wallet: connectedAddress,
               protocol_vault: PROTOCOL_VAULT_ADDRESS,
               burner_vault: burnerAddress,
@@ -235,6 +240,7 @@ export default function Navbar({ balance, setBalance, selectedCurrency = 'ETH', 
               created_at: new Date().toISOString()
             }
           ]);
+        if (error) console.error('Supabase deposit error:', error);
       } catch (err) {
         console.warn('Supabase deposit queue notice:', err);
       }

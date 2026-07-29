@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Lock, Unlock, TrendingUp, Coins, Clock, Zap, ChevronRight, AlertTriangle, CheckCircle2, X, Info, Gamepad2, BarChart3, ShieldCheck, Copy, CheckCheck } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Lock, Unlock, TrendingUp, Coins, Clock, Zap, ChevronRight, AlertTriangle, CheckCircle2, X, Info, Gamepad2, BarChart3, ShieldCheck, Copy, CheckCheck, Radio } from 'lucide-react';
 import ToastModal from './ToastModal';
 import { supabase } from '../lib/supabase';
 import { usePrivy, useWallets } from '@privy-io/react-auth';
-import { generateRandomBotPlayer } from '../utils/botGenerator';
 
 const STAKING_VAULT_ADDRESS = '0xEE29A5dC23eC52542B7Ac1dAeFff1458320D73FD';
 
@@ -17,27 +16,46 @@ const LOCK_OPTIONS = [
 
 const MIN_STAKE = 100_000;
 
-// Fallback bot staker feed (shown when Supabase has no data yet)
-const BOT_STAKERS_BASE = [
-  { addr: '0x7a...99f1', amount: '2,500,000', lock: '90 Days', mult: '3.0x', joined: '2h ago' },
-  { addr: '0x3c...22a4', amount: '500,000',   lock: '30 Days', mult: '1.75x', joined: '5h ago' },
-  { addr: '0xe1...4f09', amount: '1,000,000', lock: '60 Days', mult: '2.25x', joined: '12h ago' },
-  { addr: '0x8f...11b2', amount: '250,000',   lock: '7 Days',  mult: '1.0x', joined: '1d ago' },
-  { addr: '0xAa...F302', amount: '750,000',   lock: '14 Days', mult: '1.3x', joined: '2d ago' },
-];
+// Helper: convert a stake_requests row into a live feed entry
+const rowToFeedEntry = (r) => {
+  const lockOpt = LOCK_OPTIONS.find(o => o.days === r.lock_days) || LOCK_OPTIONS[2];
+  const ago = Math.floor((Date.now() - new Date(r.created_at).getTime()) / 60000);
+  const timeStr =
+    ago < 2   ? 'Just now' :
+    ago < 60  ? `${ago}m ago` :
+    ago < 1440 ? `${Math.floor(ago / 60)}h ago` :
+                 `${Math.floor(ago / 1440)}d ago`;
+  const raw = r.username || '';
+  const addr =
+    raw.startsWith('0x') && raw.length > 12
+      ? `${raw.slice(0, 6)}...${raw.slice(-4)}`
+      : raw.length > 14
+      ? `${raw.slice(0, 8)}...${raw.slice(-4)}`
+      : raw;
+  return {
+    id: r.id,
+    addr,
+    amount: (r.amount || 0).toLocaleString(),
+    lock: lockOpt.label,
+    mult: `${r.multiplier || 1}x`,
+    joined: timeStr,
+    color: lockOpt.color,
+  };
+};
 
 export default function StakingPage({ username, triggerToast, isConnected }) {
   const [stakeAmount, setStakeAmount] = useState('100000');
   const [selectedLock, setSelectedLock] = useState(LOCK_OPTIONS[2]);
   const [activeStakes, setActiveStakes] = useState([]);
-  const [liveStakers, setLiveStakers] = useState(BOT_STAKERS_BASE);
+  const [liveStakers, setLiveStakers] = useState([]);
   const [toast, setToast] = useState({ isOpen: false, title: '', message: '', type: 'error' });
   const [showEarlyUnstakeWarning, setShowEarlyUnstakeWarning] = useState(null);
-  const [totalStaked, setTotalStaked] = useState(13_930_000);
+  const [totalStaked, setTotalStaked] = useState(0);
   const [ethPool, setEthPool] = useState(0.8996);
-  const [stakersCount, setStakersCount] = useState(247);
+  const [stakersCount, setStakersCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const botStakerTimer = useRef(null);
+  const [liveConnected, setLiveConnected] = useState(false);
+  const seenStakeIds = useRef(new Set());
 
   // Get wallet address from Privy
   let walletAddress = null;
@@ -87,73 +105,82 @@ export default function StakingPage({ username, triggerToast, isConnected }) {
     loadStakes();
   }, [userKey]);
 
-  // ── Load global staking stats from Supabase ──
+  // ── Fetch real stakers from Supabase ──
+  const fetchRealStakers = useCallback(async () => {
+    if (!supabase) return;
+    try {
+      const { data } = await supabase
+        .from('stake_requests')
+        .select('id, amount, username, lock_days, multiplier, created_at, status')
+        .in('status', ['ACTIVE', 'UNSTAKE_PENDING'])
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (data && data.length > 0) {
+        const realTotal = data
+          .filter(r => r.status === 'ACTIVE')
+          .reduce((sum, r) => sum + (r.amount || 0), 0);
+        setTotalStaked(realTotal);
+        setStakersCount(new Set(data.filter(r => r.status === 'ACTIVE').map(r => r.username)).size);
+
+        const feed = data.slice(0, 10).map(rowToFeedEntry);
+        // Track seen ids to avoid dupe flashes later
+        data.forEach(r => seenStakeIds.current.add(r.id));
+        setLiveStakers(feed);
+      } else {
+        setTotalStaked(0);
+        setStakersCount(0);
+        setLiveStakers([]);
+      }
+    } catch (e) {}
+  }, []);
+
+  // ── Load stats + subscribe Supabase Realtime for live updates ──
   useEffect(() => {
     if (!supabase) return;
-    const loadStats = async () => {
-      try {
-        const { data } = await supabase
-          .from('stake_requests')
-          .select('amount, username, lock_days, multiplier, created_at, status')
-          .eq('status', 'ACTIVE')
-          .order('created_at', { ascending: false });
 
-        if (data && data.length > 0) {
-          const realTotal = data.reduce((sum, r) => sum + (r.amount || 0), 0);
-          if (realTotal > 0) setTotalStaked(13_930_000 + realTotal); // base + real
-          setStakersCount(247 + new Set(data.map(r => r.username)).size);
+    fetchRealStakers();
 
-          // Build live staker feed from real data
-          const realStakers = data.slice(0, 8).map(r => {
-            const lockOpt = LOCK_OPTIONS.find(o => o.days === r.lock_days) || LOCK_OPTIONS[2];
-            const ago = Math.floor((Date.now() - new Date(r.created_at).getTime()) / 60000);
-            const timeStr = ago < 60 ? `${ago}m ago` : ago < 1440 ? `${Math.floor(ago / 60)}h ago` : `${Math.floor(ago / 1440)}d ago`;
-            return {
-              addr: r.username.length > 12 ? `${r.username.slice(0, 6)}...${r.username.slice(-4)}` : r.username,
-              amount: (r.amount || 0).toLocaleString(),
-              lock: lockOpt.label,
-              mult: `${r.multiplier || 1}x`,
-              joined: timeStr,
-              color: lockOpt.color
-            };
-          });
-
-          // Merge real + bot stakers, real on top
-          setLiveStakers([...realStakers, ...BOT_STAKERS_BASE].slice(0, 8));
+    // Supabase Realtime: listen for INSERT and UPDATE on stake_requests
+    const channel = supabase
+      .channel('stake_requests_live')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'stake_requests' },
+        (payload) => {
+          const row = payload.new;
+          if (!row || seenStakeIds.current.has(row.id)) return;
+          seenStakeIds.current.add(row.id);
+          const entry = rowToFeedEntry(row);
+          setLiveStakers(prev => [entry, ...prev.slice(0, 9)]);
+          if (row.status === 'ACTIVE') {
+            setTotalStaked(prev => prev + (row.amount || 0));
+            setStakersCount(prev => prev + 1);
+          }
         }
-      } catch (e) {}
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'stake_requests' },
+        () => {
+          // Re-sync totals upon status update (e.g., unstake)
+          fetchRealStakers();
+        }
+      )
+      .subscribe((status) => {
+        setLiveConnected(status === 'SUBSCRIBED');
+      });
+
+    // Polling fallback every 10s (mobile / Safari)
+    const poll = setInterval(fetchRealStakers, 10_000);
+
+    return () => {
+      clearInterval(poll);
+      supabase.removeChannel(channel);
     };
-    loadStats();
-  }, []);
+  }, [fetchRealStakers]);
 
-  // ── Bot staker loop (adds fake stakers every 12-25s to look alive) ──
-  useEffect(() => {
-    const LOCK_LABELS = ['7 Days', '14 Days', '30 Days', '60 Days', '90 Days'];
-    const LOCK_MULTS  = ['1.0x',  '1.3x',   '1.75x',  '2.25x',  '3.0x'];
-    const AMOUNTS = ['100,000', '250,000', '500,000', '750,000', '1,000,000', '2,000,000'];
-
-    const fireBotStaker = () => {
-      const lockIdx = Math.floor(Math.random() * LOCK_LABELS.length);
-      const botEntry = {
-        addr: generateRandomBotPlayer(),
-        amount: AMOUNTS[Math.floor(Math.random() * AMOUNTS.length)],
-        lock: LOCK_LABELS[lockIdx],
-        mult: LOCK_MULTS[lockIdx],
-        joined: 'Just now',
-        color: LOCK_OPTIONS[lockIdx].color
-      };
-
-      setLiveStakers(prev => [botEntry, ...prev.slice(0, 7)]);
-      setTotalStaked(prev => prev + parseInt(botEntry.amount.replace(/,/g, ''), 10));
-      setStakersCount(prev => prev + 1);
-
-      const delay = 12000 + Math.random() * 13000;
-      botStakerTimer.current = setTimeout(fireBotStaker, delay);
-    };
-
-    botStakerTimer.current = setTimeout(fireBotStaker, 6000);
-    return () => clearTimeout(botStakerTimer.current);
-  }, []);
+  // (Bot staker loop removed — feed now shows only real stakers from Supabase)
 
   // ── Pool grows naturally ──
   useEffect(() => {
@@ -749,13 +776,38 @@ export default function StakingPage({ username, triggerToast, isConnected }) {
 
             {/* Live Staker Feed */}
             <div className="glass-panel" style={{ padding: '24px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                <TrendingUp size={18} color="var(--accent-gold)" />
-                <h4 style={{ fontFamily: 'var(--font-heading)', color: 'var(--text-primary)', fontSize: '1rem', letterSpacing: '0.5px' }}>
-                  LIVE STAKER ACTIVITY
-                </h4>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <TrendingUp size={18} color="var(--accent-gold)" />
+                  <h4 style={{ fontFamily: 'var(--font-heading)', color: 'var(--text-primary)', fontSize: '1rem', letterSpacing: '0.5px' }}>
+                    LIVE STAKER ACTIVITY
+                  </h4>
+                </div>
+                {/* Live / offline dot */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{
+                    width: '7px', height: '7px', borderRadius: '50%',
+                    background: liveConnected ? '#2EBD85' : '#9DA6B4',
+                    boxShadow: liveConnected ? '0 0 6px #2EBD85' : 'none',
+                    animation: liveConnected ? 'pulse 2s infinite' : 'none',
+                    display: 'inline-block'
+                  }} />
+                  <span style={{ fontSize: '0.62rem', color: liveConnected ? '#2EBD85' : 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.5px' }}>
+                    {liveConnected ? 'LIVE' : 'CONNECTING...'}
+                  </span>
+                </div>
               </div>
 
+              {liveStakers.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '36px 20px' }}>
+                  <Radio size={32} color="var(--text-muted)" style={{ opacity: 0.3, marginBottom: '12px' }} />
+                  <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', lineHeight: 1.6 }}>
+                    No stakers yet.<br />
+                    Be the first to stake $ONYIS to the vault!
+                  </p>
+                </div>
+              ) : (
+                <>
               {/* Table Header */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr 0.9fr 0.6fr 0.7fr', gap: '8px', padding: '6px 10px', marginBottom: '6px' }}>
                 {['Staker', 'Amount', 'Lock', 'Mult', 'Joined'].map(h => (
@@ -766,7 +818,7 @@ export default function StakingPage({ username, triggerToast, isConnected }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 {liveStakers.map((s, i) => (
                   <div
-                    key={`${s.addr}-${i}`}
+                    key={s.id ? `id-${s.id}` : `${s.addr}-${i}`}
                     style={{
                       display: 'grid',
                       gridTemplateColumns: '1fr 1.2fr 0.9fr 0.6fr 0.7fr',
@@ -788,6 +840,8 @@ export default function StakingPage({ username, triggerToast, isConnected }) {
                   </div>
                 ))}
               </div>
+                </>
+              )}
             </div>
           </div>
         </div>

@@ -272,6 +272,7 @@ export default function ChartGame({ balance, setBalance, isConnected, addLiveAct
               close: closeVal,
               isGreen: closeVal >= openVal
             });
+            if (candles.length > 40) candles.shift();
           } else if (lastCandle) {
             lastCandle.close = next;
             lastCandle.high = Math.max(lastCandle.high, next, +(next + 0.01 + Math.random() * 0.02).toFixed(2));
