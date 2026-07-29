@@ -251,7 +251,7 @@ export default function App() {
   // Global Toast Modal state
   const [toast, setToast] = useState({ isOpen: false, title: '', message: '', type: 'error' });
   const [caCopied, setCaCopied] = useState(false);
-  const CA_ADDRESS = '0x328718daf87ade89df50e09d2ba104fbbcb77777';
+  const CA_ADDRESS = 'COMING_SOON'; // Replace with real CA when deployed
 
   const handleCopyCA = () => {
     if (CA_ADDRESS === 'COMING_SOON') return; // disabled until live
